@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm mb-5" th:fragment="header">
+    <div class="container-xxl">
+        <!-- 로고 -->
+        <a class="navbar-brand fw-bold text-success" href="/">
+            코드멘토
+        </a>
+
+        <!-- 모바일 메뉴 버튼 -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <!-- 왼쪽 메뉴 -->
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item"><a class="nav-link" href="/post">커뮤니티</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">멘토링</a></li>
+            </ul>
+
+            <!-- 검색창 -->
+            <form class="d-flex flex-grow-1 mx-5" action="/search" method="get">
+                <input class="form-control me-2" type="search" name="query" placeholder="검색">
+                <button class="btn btn-outline-success" type="submit" style="white-space: nowrap;">검색</button>
+            </form>
+            <!-- 로그인 여부에 따른 버튼 표시 -->
+            <div th:if="${session.username} != null">
+                <a href="/profile" class="btn btn-outline-success me-2">마이페이지</a>
+                <a href="/member/logout" class="btn btn-danger">로그아웃</a>
+            </div>
+            <div th:if="${session.username} == null">
+                <a href="/member/login" class="btn btn-success me-2">로그인</a>
+                <a href="/member/signUp" class="btn btn-outline-success">회원가입</a>
+            </div>
+        </div>
+    </div>
+</nav>
+</html>

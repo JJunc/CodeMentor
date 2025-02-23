@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+<th:block layout:fragment="content">
+    <div class="container-xxl d-flex justify-content-center align-items-center">
+        <div class="card shadow w-50">
+            <div class="card-body">
+                <h4 class="card-title text-center mb-4">회원가입</h4>
+                <form th:action="@{/member/signUp}" th:object="${signUpDto}" method="post">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">사용자 이름</label>
+                        <input type="text" class="form-control" id="username" th:field="*{username}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">비밀번호</label>
+                        <input type="password" class="form-control" id="password" th:field="*{password}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">비밀번호 확인</label>
+                        <input type="password" class="form-control" id="confirmPassword" th:field="*{confirmPassword}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="email">이메일</label>
+                        <input type="email" class="form-control" id="email" th:field="*{email}" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">회원가입</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</th:block>
+</html>
