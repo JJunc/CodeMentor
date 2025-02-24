@@ -2,11 +2,13 @@ package com.codementor.post.entity;
 
 import com.codementor.comment.entity.Comment;
 import com.codementor.member.entity.Member;
+import com.codementor.post.enums.PostCategory;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
@@ -32,13 +34,18 @@ public class Post {
     private String content;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false, name = "author_username", referencedColumnName = "username")
     private Member author;
 
     @OneToMany(mappedBy = "post", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     private List<Comment> comments = new ArrayList<>();
 
     @Column(columnDefinition = "integer default 0")
-    private int view;
+    @ColumnDefault("0")
+    private int views = 0;
+
+    @Enumerated(EnumType.STRING)
+    private PostCategory category;
 
     @CreatedDate
     private LocalDateTime createdAt = LocalDateTime.now();

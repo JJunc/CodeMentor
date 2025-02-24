@@ -6,16 +6,16 @@
         <!-- 카테고리 탭 -->
         <ul class="nav nav-tabs justify-content-center align-items-center">
             <li class="nav-item">
-                <a class="nav-link active" href="#" th:href="@{/post/category/free}">자유게시판</a>
+                <a class="nav-link active" th:href="@{/post/free}">자유게시판</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#" th:href="@{/post/category/backend}">백엔드</a>
+                <a class="nav-link" th:href="@{/post/backend}">백엔드</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#" th:href="@{/post/category/frontend}">프론트엔드</a>
+                <a class="nav-link" th:href="@{/post/frontend}">프론트엔드</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#" th:href="@{/post/category/job}">취업</a>
+                <a class="nav-link" th:href="@{/post/job}">취업</a>
             </li>
         </ul>
 
@@ -41,10 +41,10 @@
                 </tr>
                 </thead>
                 <tbody>
-                <tr th:each="post : ${posts}">
+                <tr th:each="post : ${posts}" class="text-center">
                     <td th:text="${post.id}"></td>
                     <td th:text="${post.category.getPostCategory()}"></td>
-                    <td th:text="${post.authorName}"></td>
+                    <td th:text="${post.author.username}"></td>
                     <td><a th:href="@{/post/{id}(id=${post.id})}" th:text="${post.title}"></a></td>
                     <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}"></td>
                     <td th:text="${post.views}"></td>
@@ -55,7 +55,7 @@
 
         <!-- 글 작성 버튼 -->
         <div class="text-end">
-            <a th:href="@{/post/write}" class="btn btn-primary">글 작성</a>
+            <a th:href="@{/post/create}" class="btn btn-primary">글 작성</a>
         </div>
     </div>
 </th:block>
