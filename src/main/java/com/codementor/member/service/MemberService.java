@@ -8,10 +8,13 @@ import com.codementor.member.dto.mapper.signUpMapper;
 import com.codementor.member.entity.Member;
 import com.codementor.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MemberService {
@@ -19,24 +22,33 @@ public class MemberService {
     private final MemberRepository memberRepository;
     private final LoginMapper loginMapper;
     private final signUpMapper signUpMapper;
+    private final PasswordEncoder passwordEncoder;
 
     public void signUp(SignUpRequestDto dto) {
 
-        Optional<Member> memberUsername = memberRepository.findByUsername(dto.getUsername());
-        Optional<Member> memberEmail = memberRepository.findByEmail(dto.getEmail());
-
-        if (memberUsername.isPresent() || memberEmail.isPresent()) {
-            throw new IllegalStateException("이미 존재하는 회원입니다.");
-        }
+        // 비밀번호 암호화
+        dto.setPassword(passwordEncoder.encode(dto.getPassword()));
 
         memberRepository.save(signUpMapper.toEntity(dto));
     }
 
+    public boolean checkUsername(SignUpRequestDto dto) {
+        return memberRepository.findByUsername(dto.getUsername()).isPresent();
+    }
+
+    public boolean checkEmail(SignUpRequestDto dto) {
+        return memberRepository.findByEmail(dto.getEmail()).isPresent();
+    }
+
+    public boolean checkPassword(SignUpRequestDto dto) {
+        log.info("비밀번호 일치 여부 = {}", dto.getPassword().equals(dto.getConfirmPassword()));
+        return dto.getPassword().equals(dto.getConfirmPassword());
+    }
+
     public LoginResponseDto login(LoginRequestDto dto) {
-
-        Optional<Member> findMember = memberRepository.findByUsernameAndPassword(dto.getUsername(), dto.getPassword());
-
-        return loginMapper.toDto(findMember.get());
+        return loginMapper.toDto(memberRepository.findByUsername(dto.getUsername())
+                .filter(m-> passwordEncoder.matches(dto.getPassword(), m.getPassword()))
+                .orElse(null));
     }
 
 }
