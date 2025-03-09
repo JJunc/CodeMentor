@@ -5,15 +5,13 @@
     <div class="container-xxl">
         <h2 class="text-center mb-4">게시글 작성</h2>
 
-        <form th:action="@{/post/create}" th:object="${dto}" method="post">
-            <input th:type="hidden" name="authorName" th:field="*{authorName}"
-                   th:value="${session.loginMember.username}">
-            <input th:type="hidden" name="postId" id="postId" th:value="${dto.id}">
+        <form th:action="@{/post/edit/{id}(id=${dto.id})}" th:object="${dto}" method="post">
+            <input th:type="hidden" name="authorName" th:field="*{authorName}" th:value="${session.loginMember.username}">
 
             <!-- 제목 -->
             <div class="mb-3">
                 <label for="title" class="form-label">제목</label>
-                <input type="text" class="form-control" id="title" name="title" placeholder="제목을 입력하세요." required>
+                <input type="text" class="form-control" id="title" name="title" th:field="*{title}" placeholder="제목을 입력하세요." required>
             </div>
 
             <!-- 카테고리 선택 -->
@@ -30,34 +28,22 @@
             <!-- CKEditor5 본문 -->
             <div class="mb-3">
                 <label for="editor" class="form-label">내용</label>
-                <textarea class="form-control" id="editor" th:field="*{content}"></textarea>
+                <textarea class="form-control" id="editor" name="content" th:field="*{content}"></textarea>
             </div>
 
             <!-- 제출 버튼 -->
             <div class="d-flex justify-content-end">
-                <button type="submit" class="btn btn-primary" onclick="submitPost()">작성</button>
+                <button type="submit" class="btn btn-primary">작성</button>
                 <a href="/post/posts" class="btn btn-secondary ms-2">취소</a>
             </div>
         </form>
     </div>
     <script>
-        let myEditor;
         ClassicEditor
-            .create(document.querySelector("#editor"),{
-                removePlugins: ['MediaEmbed'],
-                ckfinder: {
-                    uploadUrl : '/image/upload'
-                }
-            })
-            .then(editor => {
-                myEditor = editor;
-                console.log('Editor was initialized');
-            })
+            .create(document.querySelector('#editor'))
             .catch(error => {
-                console.log(error);
+                console.error(error); // 오류 메시지 확인
             });
-
-
     </script>
 </th:block>
 </html>

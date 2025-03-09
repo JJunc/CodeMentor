@@ -12,15 +12,12 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostListDto {
+public class PostUpdateDto {
 
     private Long id;
     private String title;
-    private String authorName;
     private PostCategory category;
-    private String isDeleted;
-    private int views;
-    private LocalDateTime createdAt;
+    private String content;
     private LocalDateTime updatedAt;
 
 }

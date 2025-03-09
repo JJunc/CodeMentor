@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+<th:block layout:fragment="content">
+    <div class="container-xxl justify-content-center align-items-center w-75">
+        <div class="card mb-5">
+            <div class="card-body">
+                <div class="row">
+                    <h2 class="text-center mb-4" th:text="${post.title}"></h2>
+                </div>
+                <div class="row justify-content-center border-bottom">
+                    <!-- 게시글 상세 -->
+                    <div class="col text-muted mb-3">
+                        <span th:text="|작성자: ${post.authorName}|"></span> |
+                        <span th:text="|작성일: ${#temporals.format(post.createdAt, 'yyyy-MM-dd')}|"></span>
+                        <span th:if="${post.updatedAt != null}"
+                              th:text="|수정일: ${#temporals.format(post.updatedAt, 'yyyy-MM-dd')}|"></span>
+                    </div>
+                    <div class="col text-muted mb-3 text-end">
+                        <span th:text="|조회수: ${post.views}|"></span>
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <!-- 게시글 내용 -->
+                    <div class="mb-4 justify-content-center">
+                        <p th:text="${post.content}">게시글 본문 내용...</p>
+                    </div>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="d-flex justify-content-between">
+                        <a th:href="@{/post/{category}(category=${post.category})}" class="btn btn-secondary">목록으로</a>
+                        <div th:if="${session.loginMember != null and  session.loginMember.username == post.authorName}">
+                            <a th:href="@{/post/edit/{id}(id=${post.id})}" class="btn btn-primary">수정</a>
+                            <button class="btn btn-danger" onclick="deletePost()">삭제</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="card">
+            <div class="card-header">
+                댓글
+            </div>
+            <div class="card-body">
+                <input th:if="${session.loginMember != null}" type="hidden" id="loginMember"
+                       th:value="${session.loginMember.username}">
+                <form id="commentForm" th:action="@{/comment/save}" method="post">
+                    <input type="hidden" id="postId" th:value="${post.id}">
+                    <div class="form-group w-100">
+                        <label for="commentContent">댓글 내용</label>
+                        <textarea class="form-control mb-3" id="commentContent" name="content" rows="3"
+                                  required></textarea>
+                    </div>
+                    <button th:if="${session.loginMember != null}" type="button" class="btn btn-primary"
+                            onclick="addComment()">작성
+                    </button>
+                    <a th:if="${session.loginMember == null}" th:href="@{/member/login}" class="btn btn-primary">로그인</a>
+                </form>
+
+                <!-- 댓글 수정 폼 -->
+                <form id="editCommentForm" style="display: none;">
+                    <input type="hidden" id="editCommentId">
+                    <input type="hidden" id="editPostId" th:value="${post.id}">
+                    <div class="form-group w-100">
+                        <label for="editCommentContent">댓글 수정</label>
+                        <textarea class="form-control mb-3" id="editCommentContent" name="content" rows="3"
+                                  required></textarea>
+                    </div>
+                    <button type="button" class="btn btn-success" onclick="updateComment()">수정</button>
+                    <button type="button" class="btn btn-secondary" onclick="cancelEdit()">취소</button>
+                </form>
+
+
+                <div class="mt-4">
+                    <div th:if="${post.comments == null or post.comments.isEmpty()}">
+                        <p>댓글이 존재하지 않습니다. 댓글을 작성해보세요</p>
+                        <a th:if="${session.loginMember == null}" , th:href="@{/member/login}" class="btn btn-primary">로그인</a>
+                    </div>
+                    <ul id="commentList" class="list-unstyled">
+
+                    </ul>
+
+                    <nav>
+                        <ul id="pagination" class="pagination justify-content-center">
+                            <!-- 페이지 버튼이 동적으로 추가됨 -->
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+        const loginMemberInput = document.getElementById('loginMember');
+        let loginMember = null;
+
+        if (loginMemberInput) {
+            loginMember = loginMemberInput.value;  // 값 가져오기
+            console.log("로그인한 사용자:", loginMember);
+        } else {
+            console.log("로그인 정보 없음");
+        }
+
+        const postId = document.getElementById("postId").value;
+
+        let currentPage = 0;
+        let page = 0;
+        const pageSize = 10;
+
+        document.addEventListener("DOMContentLoaded", function () {
+            reloadComment(page); // 페이지가 로드될 때 댓글 자동 로드
+        });
+
+
+        function addComment() {
+            const author = document.getElementById("loginMember").value;
+            const content = document.getElementById("commentContent").value;
+
+            console.log("postId : " + postId);
+            console.log("author : " + author);
+            console.log("content : " + content);
+
+            axios.post('/comment/save', {
+                postId: postId,
+                author: author,
+                content: content
+            }).then(response => {
+                reloadComment(page);
+                console.log("댓글이 성공적으로 저장되었습니다.");
+            }).catch(error => {
+                console.error("에러 발생:", error);
+            });
+        }
+
+        function reloadComment(page) {
+            console.log("현재 페이지:", page);  // 로그 출력
+
+            axios.get(`/comment/${postId}?page=${page}&size=${pageSize}`)
+                .then(response => {
+                    console.log("서버 응답:", response.data);
+                    updateCommentList(response.data.content);
+                    updatePagination(response.data);
+
+                    setTimeout(adjustFooterPosition, 100);
+                })
+                .catch(error => {
+                    console.error("댓글을 불러오는 데 실패했습니다:", error);
+                });
+        }
+
+        function adjustFooterPosition() {
+            const content = document.querySelector('.content');
+            const footer = document.querySelector('footer');
+            const windowHeight = window.innerHeight;
+            const bodyHeight = document.body.offsetHeight;
+
+            // 전체 높이가 화면보다 작으면 최소 높이 설정
+            if (bodyHeight < windowHeight) {
+                content.style.minHeight = `${windowHeight - footer.offsetHeight}px`;
+            } else {
+                content.style.minHeight = 'auto';
+            }
+        }
+
+        // 페이지 로드 시 푸터 위치 조정
+        window.onload = adjustFooterPosition;
+        window.addEventListener('resize', adjustFooterPosition);
+
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+
+            // 년, 월, 일, 시, 분 추출
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // 월은 0부터 시작하므로 +1 필요
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+
+            // 'yyyy-MM-dd HH:mm' 형식으로 반환
+            return `${year}-${month}-${day} ${hours}:${minutes}`;
+        }
+
+        function updateCommentList(comments) {
+            const commentList = document.getElementById("commentList"); // 댓글 리스트 영역
+            commentList.innerHTML = ""; // 기존 댓글 초기화
+
+            if (!Array.isArray(comments)) {
+                console.error("오류: comments가 배열이 아닙니다.", comments);
+                return;
+            }
+
+            // 로그인한 사용자 정보 가져오기 (hidden input 사용)
+            const loginMemberInput = document.getElementById("loginMember");
+            const loginMember = loginMemberInput ? loginMemberInput.value : null;
+
+
+            comments.forEach(comment => {
+                const formattedDate = formatDate(comment.createdAt);
+
+                // 로그인한 사용자가 댓글 작성자인 경우에만 버튼 추가
+                const actionButtons = loginMember === comment.author
+                    ? `
+            <div class="text-end">
+                <button type="button" class="btn btn-primary btn-sm" onclick="showEditForm('${comment.id}', '${comment.content}')">수정</button>
+                <button type="button" class="btn btn-danger btn-sm" onclick="deleteComment(${comment.id}, ${comment.postId})">삭제</button>
+            </div>`
+                    : "";
+
+                const commentHtml = `
+            <li class="comment-item" id="comment-${comment.id}">
+                <div class="media mb-3 p-3 border rounded shadow-sm">
+                    <div class="media-body">
+                        <div class="d-flex justify-content-between">
+                            <span class="mt-0 font-weight-bold text-primary h5">${comment.author}</span>
+                            <span>작성일: ${formattedDate}</span>
+                        </div>
+                        <p class="mb-1 text-dark" id="commentContent-${comment.id}">${comment.content}</p>
+
+                        <!-- 수정 폼 (기본적으로 숨김) -->
+                        <form id="editCommentForm-${comment.id}" class="edit-form" style="display: none;">
+                            <input type="hidden" id="editCommentId-${comment.id}" value="${comment.id}">
+                            <textarea class="form-control mb-2" id="editCommentContent-${comment.id}" rows="3">${comment.content}</textarea>
+                            <button type="button" class="btn btn-success btn-sm" onclick="updateComment(${comment.id})">수정 완료</button>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="cancelEdit(${comment.id})">취소</button>
+                        </form>
+
+                    </div>
+                    ${actionButtons} <!-- 수정/삭제 버튼 조건부 렌더링 -->
+                </div>
+            </li>`
+                ;
+                commentList.innerHTML += commentHtml;
+            });
+        }
+
+        function updatePagination(comments) {
+            const paginationContainer = document.getElementById('pagination');
+            paginationContainer.innerHTML = '';
+
+            // 첫 페이지 버튼
+            paginationContainer.innerHTML += `<li class="page-item ${comments.first ? 'disabled' : ''}">
+        <a class="page-link" href="#" onclick="reloadComment(0)">처음</a>
+    </li>`;
+
+            // 이전 페이지 버튼
+            paginationContainer.innerHTML += `<li class="page-item ${comments.first ? 'disabled' : ''}">
+        <a class="page-link" href="#" onclick="reloadComment(${comments.number - 1})">이전</a>
+    </li>`;
+
+            // 페이지 번호
+            for (let i = 0; i < comments.totalPages; i++) {
+                paginationContainer.innerHTML += `<li class="page-item ${comments.number === i ? 'active' : ''}">
+            <a class="page-link" href="#" onclick="reloadComment(${i})">${i + 1}</a>
+        </li>`;
+            }
+
+            // 다음 페이지 버튼
+            paginationContainer.innerHTML += `<li class="page-item ${comments.last ? 'disabled' : ''}">
+        <a class="page-link" href="#" onclick="reloadComment(${comments.number + 1})">다음</a>
+    </li>`;
+
+            // 마지막 페이지 버튼
+            paginationContainer.innerHTML += `<li class="page-item ${comments.last ? 'disabled' : ''}">
+        <a class="page-link" href="#" onclick="reloadComment(${comments.totalPages - 1})">마지막</a>
+    </li>`;
+        }
+
+        function showEditForm(commentId, currentContent) {
+            // 기존 댓글 내용 가져오기
+            const contentElement = document.getElementById(`commentContent-${commentId}`);
+            const editForm = document.getElementById(`editCommentForm-${commentId}`);
+            const editTextarea = document.getElementById(`editCommentContent-${commentId}`);
+
+            // 기존 댓글 숨기고 수정 폼 표시
+            contentElement.style.display = "none"; // 기존 댓글 숨기기
+            editForm.style.display = "block"; // 수정 폼 보이기
+        }
+
+        function updateComment(commentId) {
+            const postId = document.getElementById("postId").value;
+            const content = document.getElementById(`editCommentContent-${commentId}`).value;
+
+            if (!content.trim()) {
+                alert("댓글 내용을 입력해주세요.");
+                return;
+            }
+
+            axios.post("/comment/edit", {
+                id: commentId,
+                postId: postId,
+                content: content
+            }).then(response => {
+                console.log("댓글 수정 완료:", response.data);
+
+                // 수정된 내용으로 댓글 업데이트
+                const contentElement = document.getElementById(`commentContent-${commentId}`);
+                contentElement.innerText = content;
+
+                cancelEdit(commentId); // 수정 폼 닫기
+            }).catch(error => {
+                console.error("댓글 수정 중 에러 발생:", error);
+            });
+        }
+
+        function cancelEdit(commentId) {
+            const contentElement = document.getElementById(`commentContent-${commentId}`);
+            const editForm = document.getElementById(`editCommentForm-${commentId}`);
+
+            contentElement.style.display = "block"; // 기존 댓글 다시 보이기
+            editForm.style.display = "none"; // 수정 폼 숨기기
+        }
+
+        function deleteComment(commentId, postId) {
+            if (confirm("정말 삭제하시겠습니까?")) {
+                axios.post("/comment/delete", {id: commentId, postId: postId})
+                    .then(response => {
+                        console.log("댓글 삭제 완료:", response.data);
+                        // 댓글 삭제 후 리스트에서 제거
+                        const commentElement = document.getElementById(`comment-${commentId}`);
+                        commentElement.remove();
+                    })
+                    .catch(error => {
+                        console.error("댓글 삭제 중 에러 발생:", error);
+                    });
+            }
+        }
+
+    </script>
+</th:block>
+</html>

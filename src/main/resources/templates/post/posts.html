@@ -42,21 +42,57 @@
                 </thead>
                 <tbody>
                 <tr th:each="post : ${posts}" class="text-center">
-                    <td th:text="${post.id}"></td>
-                    <td th:text="${post.category.getPostCategory()}"></td>
-                    <td th:text="${post.author.username}"></td>
-                    <td><a th:href="@{/post/{id}(id=${post.id})}" th:text="${post.title}"></a></td>
-                    <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}"></td>
-                    <td th:text="${post.views}"></td>
+                    <div th:if="i">
+                        <td th:text="${post.id}"></td>
+                        <td th:text="${post.category.getPostCategory()}"></td>
+                        <td th:text="${post.authorName}"></td>
+                        <td><a th:href="@{/post/{category}/{id}(category=${post.category}, id=${post.id})}"
+                               th:text="${post.title}"></a></td>
+                        <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}"></td>
+                        <td th:text="${post.views}"></td>
+                    </div>
+                </tr>
+                <tr th:if="${posts == null or posts.isEmpty()}" class="text-center">
+                    <td colspan="6" rowspan="2">게시글이 존재하지 않습니다.<br>게시글을 작성하여 다른 사람들과 소통해보세요!</td>
                 </tr>
                 </tbody>
             </table>
         </div>
 
         <!-- 글 작성 버튼 -->
-        <div class="text-end">
+        <div th:if="${session.loginMember != null}" class="text-end">
             <a th:href="@{/post/create}" class="btn btn-primary">글 작성</a>
         </div>
+
+        <div th:if="${posts.totalPages > 0}" class="pagination justify-content-center">
+            <ul class="pagination">
+                <li class="page-item">
+                    <a th:href="@{/post/{category}(category=${category}, page=0, size=10)}"
+                       th:class="${posts.isFirst()} ? 'disabled page-link' : 'page-link' " >처음</a>
+                </li>
+                <li class="page-item">
+                    <a th:href="@{/post/{category}(category=${category}, page=${posts.number - 1} , size=10)}"
+                       th:class="${posts.isFirst()} ? 'disabled page-link' : 'page-link' ">이전</a>
+                </li>
+
+                <!-- 페이지 번호 링크 -->
+                <li th:each="i : ${#numbers.sequence(0, posts.totalPages - 1)}" class="page-item">
+                    <a th:href="@{/post/{category}(category=${category}, page=${i}, size=10)}"
+                       th:text="${i + 1}" class="page-link"
+                       th:classappend="${posts.number == i} ? ' active' : ''"></a>
+                </li>
+
+                <li class="page-item">
+                    <a th:href="@{/post/{category}(category=${category}, page=${posts.number + 1}, size=10)}"
+                       th:class="${posts.isLast()} ? 'disabled page-link' : 'page-link' ">다음</a>
+                </li>
+                <li class="page-item">
+                    <a th:href="@{/post/{category}(category=${category}, page=${posts.totalPages - 1}, size=10)}"
+                       th:class="${posts.isLast()} ? 'disabled page-link' : 'page-link' " >마지막</a>
+                </li>
+            </ul>
+        </div>
+
     </div>
 </th:block>
 </html>
