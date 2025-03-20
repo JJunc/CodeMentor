@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+<th:block layout:fragment="content">
+    <div class="container-xxl fluid">
+        <div class="row">
+            <!-- 왼쪽 네비게이션 -->
+            <div class="col-md-3 col-lg-2 p-3 bg-light">
+                <h4 class="text-center mb-4">내 계정</h4>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="account-tab" data-bs-toggle="tab" href="#account">계정 정보</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="posts-tab" data-bs-toggle="tab" href="#posts">내 게시글</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="comments-tab" data-bs-toggle="tab" href="#comments">내 댓글</a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 오른쪽 콘텐츠 영역 -->
+            <div class="col-md-9 col-lg-10 p-4">
+                <form method="post" th:action="@{/my/edit}" th:object="${member}" id="editForm" onsubmit="submitForm(event)">
+                    <h3 class="text-center fw-bold">계정 정보</h3>
+                    <div class="card shadow mt-5">
+                        <!-- 계정 정보 탭 -->
+                        <div class="card-body m-3" id="account">
+                            <div class="m-4">
+                                <h5 class="fw-bold">내 프로필</h5>
+                            </div>
+                            <div class="row m-3">
+                                <div class="col-2 fw-bold"><span>닉네임</span></div>
+<!--                                <div class="col fw-semibold"><input type="text" class="form-control" th:field="*{nickname}"></div>-->
+                            </div>
+                            <div class="row m-3">
+                                <div class="col-2 fw-bold"><span>자기소개</span></div>
+<!--                                <div class="col fw-semibold"><input type="text" class="form-control" th:field="*{url}"></div>-->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow mt-5">
+                        <!-- 계정 정보 탭 -->
+                        <div class="card-body m-3" id=" ">
+                            <div class="m-4">
+                                <h5 class="fw-bold">기본 정보</h5>
+                            </div>
+                            <div class="row m-3">
+                                <div class="col-2 fw-bold"><span>아이디</span></div>
+                                <div class="col fw-semibold"><span th:text="${member.username}"></span></div>
+                            </div>
+                            <div class="row m-3">
+                                <div class="col-2 fw-bold"><span>이메일</span></div>
+                                <div class="col fw-semibold"><input type="email" class="form-control" id="email"
+                                                                    th:field="*{email}"
+                                                                    onkeyup="checkEmail()" required>
+                                    <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="text-danger"></p>
+                                    <p id="emailCheckResult"></p></div>
+                            </div>
+                            <div class="row m-3">
+                                <div class="col-2 fw-bold"><span>가입일</span></div>
+                                <div class="col fw-semibold"><span th:text="${#temporals.format(member.createdAt, 'yyyy-MM-dd')}"></span></div>
+                            </div>
+                            <div class="row m-3">
+                                <div class="col-2 fw-bold"><span>비밀번호</span></div>
+                                <div class="col fw-semibold"><input type="password" class="form-control"
+                                                                    id="password" th:field="*{password}"
+                                                                    required>
+                                    <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}"
+                                          class="text-danger"></span>
+                                    <p th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="text-danger"></p>
+                                    <p id="passwordCheckResult"></p></div>
+                            </div>
+                            <div class="row m-3">
+                                <div class="col-2 fw-bold"><span>비밀번호 확인</span></div>
+                                <div class="col fw-semibold"><input type="password" class="form-control"
+                                                                    id="confirmPassword" th:field="*{confirmPassword}"
+                                                                    onkeyup="checkPasswordMatch();" required>
+                                    <p id="passwordMatchResult"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">수정</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+        let isUsernameValid = false;
+        let isPasswordValid = false;
+        let isEmailValid = false;
+
+        function checkPasswordMatch(event) {
+            let password = document.getElementById("password").value;
+            let confirmPassword = document.getElementById("confirmPassword").value;
+            let resultDiv = document.getElementById("passwordMatchResult");
+
+            // 서버로 비밀번호 확인 요청
+            axios.post("/my/check-password", {password, confirmPassword})
+                .then(response => {
+                    resultDiv.style.color = "green";
+                    resultDiv.innerText = response.data;
+                    isPasswordValid = true;  // 검증 통과
+                })
+                .catch(error => {
+                    resultDiv.style.color = "red";
+                    resultDiv.innerText = error.response.data;
+                    isPasswordValid = false;  // 검증 실패
+                });
+        }
+
+        function checkEmail(event) {
+            let email = document.getElementById("email").value;
+            let resultDiv = document.getElementById("emailCheckResult");
+
+            // 서버로 이메일 중복 체크 요청
+            axios.post("/my/check-email", {email})
+                .then(response => {
+                    resultDiv.style.color = "green";
+                    resultDiv.innerText = response.data;
+                    isEmailValid = true;  // 검증 통과
+                })
+                .catch(error => {
+                    resultDiv.style.color = "red";
+                    resultDiv.innerText = error.response.data;
+                    isEmailValid = false;  // 검증 실패
+                });
+        }
+
+
+        // function checkNickname(event) {
+        //     let email = document.getElementById("nickname").value;
+        //     let resultDiv = document.getElementById("nicknameCheckResult");
+        //
+        //     // 서버로 이메일 중복 체크 요청
+        //     axios.post("/my/check-email", {email})
+        //         .then(response => {
+        //             resultDiv.style.color = "green";
+        //             resultDiv.innerText = response.data;
+        //             isEmailValid = true;  // 검증 통과
+        //         })
+        //         .catch(error => {
+        //             resultDiv.style.color = "red";
+        //             resultDiv.innerText = error.response.data;
+        //             isEmailValid = false;  // 검증 실패
+        //         });
+        // }
+
+        // 폼 제출 시 모든 검증이 완료되었는지 확인하는 함수
+        function submitForm(event) {
+            event.preventDefault();  // 기본 폼 제출을 막음
+
+            if (isPasswordValid && isEmailValid) {
+                document.getElementById("editForm").submit();  // 모든 검증을 통과한 경우 폼을 제출
+            } else {
+                // 검증 실패 시 첫 번째 오류 필드로 포커스를 이동
+                if (!isPasswordValid) {
+                    document.getElementById("confirmPassword").focus();
+                } else if (!isEmailValid) {
+                    document.getElementById("email").focus();
+                }
+            }
+        }
+    </script>
+</th:block>
+</html>

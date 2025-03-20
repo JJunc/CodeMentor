@@ -19,8 +19,7 @@ public class PostCreateDto {
     private PostCategory category;
     private Long postId;
     private String content;
-    private String authorName;
-
+    private String author;
     private List<String> tempImageIds; // 클라이언트에서 받은 임시 이미지 ID
     private List<String> imagePaths; // 최종 저장된 이미지 경로
 

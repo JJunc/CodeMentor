@@ -11,7 +11,7 @@
                 <div class="row justify-content-center border-bottom">
                     <!-- 게시글 상세 -->
                     <div class="col text-muted mb-3">
-                        <span th:text="|작성자: ${post.authorName}|"></span> |
+                        <span th:text="|작성자: ${post.author}|"></span> |
                         <span th:text="|작성일: ${#temporals.format(post.createdAt, 'yyyy-MM-dd')}|"></span>
                         <span th:if="${post.updatedAt != null}"
                               th:text="|수정일: ${#temporals.format(post.updatedAt, 'yyyy-MM-dd')}|"></span>
@@ -29,7 +29,7 @@
                 <div class="row justify-content-center">
                     <div class="d-flex justify-content-between">
                         <a th:href="@{/post/{category}(category=${post.category})}" class="btn btn-secondary">목록으로</a>
-                        <div th:if="${session.loginMember != null and  session.loginMember.username == post.authorName}">
+                        <div th:if="${session.loginMember != null and  session.loginMember.username == post.author}">
                             <a th:href="@{/post/edit/{id}(id=${post.id})}" class="btn btn-primary">수정</a>
                             <button class="btn btn-danger" onclick="deletePost()">삭제</button>
                         </div>
@@ -93,16 +93,9 @@
     </div>
     <script>
 
-        const loginMemberInput = document.getElementById('loginMember');
-        let loginMember = null;
-
-        if (loginMemberInput) {
-            loginMember = loginMemberInput.value;  // 값 가져오기
-            console.log("로그인한 사용자:", loginMember);
-        } else {
-            console.log("로그인 정보 없음");
-        }
-
+        // 로그인한 사용자 정보 가져오기 (hidden input 사용)
+        const loginMemberInput = document.getElementById("loginMember");
+        const loginMember = loginMemberInput ? loginMemberInput.value : null;
         const postId = document.getElementById("postId").value;
 
         let currentPage = 0;
@@ -114,13 +107,13 @@
         });
 
 
-        function addComment() {
-            const author = document.getElementById("loginMember").value;
+        function createComment() {
+            const author = loginMember
             const content = document.getElementById("commentContent").value;
 
-            console.log("postId : " + postId);
-            console.log("author : " + author);
-            console.log("content : " + content);
+            console.log("게시글 번호 : " + postId);
+            console.log("작성자 : " + author);
+            console.log("내용 : " + content);
 
             axios.post('/comment/save', {
                 postId: postId,
@@ -143,31 +136,11 @@
                     updateCommentList(response.data.content);
                     updatePagination(response.data);
 
-                    setTimeout(adjustFooterPosition, 100);
                 })
                 .catch(error => {
                     console.error("댓글을 불러오는 데 실패했습니다:", error);
                 });
         }
-
-        function adjustFooterPosition() {
-            const content = document.querySelector('.content');
-            const footer = document.querySelector('footer');
-            const windowHeight = window.innerHeight;
-            const bodyHeight = document.body.offsetHeight;
-
-            // 전체 높이가 화면보다 작으면 최소 높이 설정
-            if (bodyHeight < windowHeight) {
-                content.style.minHeight = `${windowHeight - footer.offsetHeight}px`;
-            } else {
-                content.style.minHeight = 'auto';
-            }
-        }
-
-        // 페이지 로드 시 푸터 위치 조정
-        window.onload = adjustFooterPosition;
-        window.addEventListener('resize', adjustFooterPosition);
-
 
         function formatDate(dateString) {
             const date = new Date(dateString);
@@ -192,11 +165,6 @@
                 return;
             }
 
-            // 로그인한 사용자 정보 가져오기 (hidden input 사용)
-            const loginMemberInput = document.getElementById("loginMember");
-            const loginMember = loginMemberInput ? loginMemberInput.value : null;
-
-
             comments.forEach(comment => {
                 const formattedDate = formatDate(comment.createdAt);
 
@@ -208,6 +176,15 @@
                 <button type="button" class="btn btn-danger btn-sm" onclick="deleteComment(${comment.id}, ${comment.postId})">삭제</button>
             </div>`
                     : "";
+                const replyButton = loginMember === comment.author
+                    ?
+                    `
+                    <div>
+                            <button type="button" class="btn btn-primary" onClick="showReplyForm(${comment.id})">답글</button>
+                    </div>
+                    `
+                    : "";
+
 
                 const commentHtml = `
             <li class="comment-item" id="comment-${comment.id}">
@@ -218,6 +195,17 @@
                             <span>작성일: ${formattedDate}</span>
                         </div>
                         <p class="mb-1 text-dark" id="commentContent-${comment.id}">${comment.content}</p>
+                        <br>
+                        ${replyButton}
+
+                        <!-- 답글 폼 (기본적으로 숨김) -->
+                        <div id="replyForm-${comment.id}" class="reply-form mt-3 ms-4" style="display: none;">
+                            <form>
+                                <textarea class="form-control mb-2" id="replyContent-${comment.id}" rows="3" placeholder="답글을 입력하세요..."></textarea>
+                                <button type="button" class="btn btn-success btn-sm" onclick="createReply(${comment.id})">작성</button>
+                                <button type="button" class="btn btn-secondary btn-sm" onclick="cancelReply(${comment.id})">취소</button>
+                            </form>
+                        </div>
 
                         <!-- 수정 폼 (기본적으로 숨김) -->
                         <form id="editCommentForm-${comment.id}" class="edit-form" style="display: none;">
@@ -226,13 +214,14 @@
                             <button type="button" class="btn btn-success btn-sm" onclick="updateComment(${comment.id})">수정 완료</button>
                             <button type="button" class="btn btn-secondary btn-sm" onclick="cancelEdit(${comment.id})">취소</button>
                         </form>
-
                     </div>
                     ${actionButtons} <!-- 수정/삭제 버튼 조건부 렌더링 -->
                 </div>
+                 ${getReplies(comment.replies)}
             </li>`
                 ;
                 commentList.innerHTML += commentHtml;
+
             });
         }
 
@@ -327,6 +316,62 @@
                     });
             }
         }
+
+        function showReplyForm(parentId) {
+            const replyForm = document.getElementById(`replyForm-${parentId}`);
+
+            // 답글 폼 표시
+            replyForm.style.display = "block";
+        }
+        function getReplies(replies) {
+            if (!replies || replies.length === 0) return "";
+
+            return `
+        <ul class="reply-list ms-4"> <!-- 들여쓰기 적용 -->
+            ${replies.map(reply => `
+                <li class="reply-item" id="reply-${reply.id}">
+                    <div class="media mb-2 p-2 border rounded bg-light">
+                        <div class="media-body">
+                            <div class="d-flex justify-content-between">
+                                <span class="font-weight-bold text-secondary">${reply.author}</span>
+                                <span>${formatDate(reply.createdAt)}</span>
+                            </div>
+                            <p class="mb-1 text-dark">${reply.content}</p>
+                        </div>
+                    </div>
+                </li>
+            `).join('')}
+        </ul>
+    `;
+        }
+
+        function createReply(parentId) {
+
+            const postId = document.getElementById("postId").value;
+            const content = document.getElementById(`replyContent-${parentId}`).value;
+
+            if (!content.trim()) {
+                alert("댓글 내용을 입력해주세요.");
+                return;
+            }
+
+            axios.post(`/reply/create/${parentId}`, {
+                postId: postId,
+                author: loginMember,
+                parentId: parentId,
+                content: content
+            }).then(response => {
+                reloadComment(page);
+                console.log("답글 작성 완료:", response.data);
+            }).catch(error => {
+                console.error("답글 작성 중 에러 발생:", error);
+            });
+        }
+
+        function cancelReply(commentId) {
+            document.getElementById(`replyForm-${commentId}`).style.display = 'none';
+        }
+
 
     </script>
 </th:block>

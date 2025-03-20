@@ -8,6 +8,7 @@ import com.codementor.member.entity.Member;
 import com.codementor.member.repository.MemberRepository;
 import com.codementor.post.entity.Post;
 import com.codementor.post.repository.PostRepository;
+import com.codementor.reply.dto.mapper.ReplyMapper;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -25,8 +27,9 @@ public class CommentService {
     private final MemberRepository memberRepository;
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
+    private final ReplyMapper replyMapper;
 
-    public Long save(CommentDto commentDto) {
+    public Long create(CommentDto commentDto) {
         // 댓글을 작성할 게시판과 회원 조회
         Optional<Post> optionalPost = postRepository.findById(commentDto.getPostId());
         Member author = memberRepository.findByUsername(commentDto.getAuthor()).get();
@@ -37,7 +40,6 @@ public class CommentService {
             Comment comment = commentMapper.toEntity(commentDto);
             comment.setPost(post);
             comment.setMember(author);
-            comment.setParent(null);
             return commentRepository.save(comment).getId();
         } else {
             return null;
@@ -46,7 +48,13 @@ public class CommentService {
 
     public Page<CommentDto> getComments(Long postId, Pageable pageable) {
         Page<Comment> commentPage = commentRepository.findByPostId(postId, pageable);
-        return commentPage.map(comment -> commentMapper.toCommentDto(comment));
+        return commentPage.map(comment -> {
+            CommentDto dto = commentMapper.toDto(comment);
+            dto.setReplies(comment.getReplies().stream()
+                    .map(replyMapper::toDto)
+                    .collect(Collectors.toList()));
+            return dto;
+        });
     }
 
     @Transactional

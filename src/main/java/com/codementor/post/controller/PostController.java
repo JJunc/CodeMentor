@@ -73,7 +73,7 @@ public class PostController {
                              HttpSession session,
                              Model model) throws IOException {
         LoginResponseDto loginMember = (LoginResponseDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
-        dto.setAuthorName(loginMember.getUsername());
+        dto.setAuthor(loginMember.getUsername());
 
         postService.createPost(dto);
 
@@ -98,7 +98,7 @@ public class PostController {
 
         model.addAttribute("post", post);
         model.addAttribute("commentDto", new CommentDto());
-        model.addAttribute("comments", commentService.getComments(id, Pageable.unpaged()));
+
 
         return "/post/post-detail";
     }

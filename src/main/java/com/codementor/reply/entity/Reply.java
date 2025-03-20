@@ -1,12 +1,15 @@
-package com.codementor.comment.entity;
+package com.codementor.reply.entity;
 
 import com.codementor.comment.dto.CommentDto;
+import com.codementor.comment.entity.Comment;
 import com.codementor.member.entity.Member;
 import com.codementor.post.entity.Post;
-import com.codementor.reply.entity.Reply;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
@@ -19,8 +22,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Comment {
-
+public class Reply {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -31,14 +33,15 @@ public class Comment {
     private String isDeleted = "N";
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id", referencedColumnName = "id", nullable = false)
+    private Comment parent;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     private Post post;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "author_username", referencedColumnName = "username")
     private Member member;
-
-    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
-    private List<Reply> replies = new ArrayList<>();
 
     @CreatedDate
     private LocalDateTime createdAt = LocalDateTime.now();

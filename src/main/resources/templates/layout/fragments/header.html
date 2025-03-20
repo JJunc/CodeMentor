@@ -26,8 +26,8 @@
             </form>
             <!-- 로그인 여부에 따른 버튼 표시 -->
             <div th:if="${session.loginMember} != null">
-                <a href="/profile" class="btn btn-outline-success me-2">마이페이지</a>
                 <a href="/member/logout" class="btn btn-danger">로그아웃</a>
+                <a href="/my" class="btn btn-success">마이페이지</a>
             </div>
             <div th:if="${session.loginMember} == null">
                 <a href="/member/login" class="btn btn-success me-2">로그인</a>

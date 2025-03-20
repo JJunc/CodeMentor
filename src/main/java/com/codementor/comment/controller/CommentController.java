@@ -1,7 +1,6 @@
 package com.codementor.comment.controller;
 
 import com.codementor.comment.dto.CommentDto;
-import com.codementor.comment.entity.Comment;
 import com.codementor.comment.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,12 +10,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,10 +28,10 @@ public class CommentController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity addComment(@RequestBody CommentDto commentDto,
+    public ResponseEntity createComment(@RequestBody CommentDto commentDto,
                                      @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         log.info("댓글이 작성될 게시판 번호 = {}", commentDto.getPostId());
-        Long saveResult = commentService.save(commentDto);
+        Long saveResult = commentService.create(commentDto);
         if (saveResult != null) {
             Page<CommentDto> commentDtoList = commentService.getComments(commentDto.getPostId(), pageable);
             return new ResponseEntity<>(commentDtoList, HttpStatus.OK);
@@ -48,7 +42,7 @@ public class CommentController {
 
     @PostMapping("/edit")
     public ResponseEntity editComment(@RequestBody CommentDto commentDto,
-                                      @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+                                      @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         commentService.edit(commentDto);
         Page<CommentDto> commentDtoList = commentService.getComments(commentDto.getPostId(), pageable);
         return new ResponseEntity<>(commentDtoList, HttpStatus.OK);
@@ -61,7 +55,6 @@ public class CommentController {
         Page<CommentDto> commentDtoList = commentService.getComments(commentDto.getPostId(), pageable);
         return new ResponseEntity<>(commentDtoList, HttpStatus.OK);
     }
-
 
 
 }

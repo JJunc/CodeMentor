@@ -58,6 +58,18 @@ public class AuthController {
         return ResponseEntity.ok("사용 가능한 이메일입니다.");
     }
 
+    @PostMapping("/check-nickname")
+    @ResponseBody
+    public ResponseEntity<String> checkNickname(@RequestBody SignUpRequestDto dto) {
+        boolean check = memberService.checkEmail(dto);
+
+        if (check) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("이미 사용 중인 이메일입니다.");
+        }
+
+        return ResponseEntity.ok("사용 가능한 이메일입니다.");
+    }
+
     @PostMapping("/check-password")
     @ResponseBody
     public ResponseEntity<String> checkPassword(@RequestBody SignUpRequestDto dto) {

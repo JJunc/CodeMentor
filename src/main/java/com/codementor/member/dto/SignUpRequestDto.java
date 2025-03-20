@@ -24,6 +24,8 @@ public class SignUpRequestDto {
             message = "비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다.")
     private String password;
 
+    private String nickname;
+
     @NotBlank(message = "비밀번호를 확인해주세요")
     private String confirmPassword;
 

@@ -1,5 +1,7 @@
 package com.codementor.member.entity;
 
+import com.codementor.member.dto.MemberEmailUpdateDto;
+import com.codementor.member.dto.MemberUpdateDto;
 import com.codementor.member.enums.MemberRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -27,11 +29,16 @@ public class Member {
     @Column(nullable = false, unique = true)
     private String username;
 
+    @Column(nullable = false, unique = true)
+    private String nickname;
+
     @Column(nullable = false)
     private String password;
 
     @Column(nullable = false)
     private String email;
+
+    private String url;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
@@ -42,4 +49,12 @@ public class Member {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    public void updatePassword(MemberUpdateDto dto) {
+        this.password = dto.getPassword();
+    }
+
+    public void updateEmail(MemberEmailUpdateDto dto) {
+        this.email = dto.getEmail();
+    }
 }

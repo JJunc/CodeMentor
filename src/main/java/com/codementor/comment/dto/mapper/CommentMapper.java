@@ -10,12 +10,13 @@ public interface CommentMapper {
 
     @Mapping(source = "author", target = "member.username")
     @Mapping(source = "postId", target = "post.id")
-    @Mapping(source = "parentId", target = "parent.id")
+    @Mapping(source = "replies", target = "replies")
     Comment toEntity(CommentDto commentDto);
 
     @Mapping(source = "member.username", target = "author")
     @Mapping(source="post.id", target = "postId")
-    @Mapping(source="parent.id", target="parentId")
-    CommentDto toCommentDto(Comment comment);
+    @Mapping(source = "replies", target = "replies")
+    @Mapping(expression = "java(comment.getReplies() != null ? comment.getReplies().size() : 0)", target = "replyCount")
+    CommentDto toDto(Comment comment);
 
 }

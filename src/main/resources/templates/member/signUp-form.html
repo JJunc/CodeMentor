@@ -16,6 +16,13 @@
                         <div id="usernameCheckResult"></div>
                     </div>
                     <div class="mb-3">
+                        <label for="nickname" class="form-label">닉네임</label>
+                        <input type="text" class="form-control" id="nickname" th:field="*{nickname}"
+                               onkeyup="checkNickname();" required>
+                        <span th:if="${#fields.hasErrors('nickname')}" th:errors="*{nickname}" class="text-danger"></span>
+                        <div id="nicknameCheckResult"></div>
+                    </div>
+                    <div class="mb-3">
                         <label for="password" class="form-label">비밀번호</label>
                         <input type="password" class="form-control" id="password" th:field="*{password}" required>
                         <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="text-danger"></span>
@@ -25,7 +32,6 @@
                         <label for="confirmPassword" class="form-label">비밀번호 확인</label>
                         <input type="password" class="form-control" id="confirmPassword" th:field="*{confirmPassword}"
                               onkeyup="checkPasswordMatch();" required>
-                        <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="text-danger"></span>
                         <div id="passwordMatchResult"></div>
                     </div>
                     <div class="mb-3">
@@ -33,6 +39,7 @@
                         <input type="email" class="form-control" id="email" th:field="*{email}"
                                onkeyup="checkEmail()" required>
                     </div>
+                    <span th:if="${#fields.hasErrors('email')}" th:errors="*{email}" class="text-danger"></span>
                     <div id="emailCheckResult"></div>
                     <button type="submit" id="submitBtn" class="btn btn-primary w-100">회원가입</button>
                 </form>
@@ -90,6 +97,24 @@
         function checkEmail(event) {
             let email = document.getElementById("email").value;
             let resultDiv = document.getElementById("emailCheckResult");
+
+            // 서버로 이메일 중복 체크 요청
+            axios.post("/member/check-email", { email })
+                .then(response => {
+                    resultDiv.style.color = "green";
+                    resultDiv.innerText = response.data;
+                    isEmailValid = true;  // 검증 통과
+                })
+                .catch(error => {
+                    resultDiv.style.color = "red";
+                    resultDiv.innerText = error.response.data;
+                    isEmailValid = false;  // 검증 실패
+                });
+        }
+
+        function checkNickname(event) {
+            let email = document.getElementById("nickname").value;
+            let resultDiv = document.getElementById("nicknameCheckResult");
 
             // 서버로 이메일 중복 체크 요청
             axios.post("/member/check-email", { email })

@@ -45,7 +45,7 @@
                     <div th:if="i">
                         <td th:text="${post.id}"></td>
                         <td th:text="${post.category.getPostCategory()}"></td>
-                        <td th:text="${post.authorName}"></td>
+                        <td th:text="${post.author}"></td>
                         <td><a th:href="@{/post/{category}/{id}(category=${post.category}, id=${post.id})}"
                                th:text="${post.title}"></a></td>
                         <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}"></td>
@@ -92,7 +92,6 @@
                 </li>
             </ul>
         </div>
-
     </div>
 </th:block>
 </html>

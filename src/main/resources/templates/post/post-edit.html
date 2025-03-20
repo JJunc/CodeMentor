@@ -6,7 +6,7 @@
         <h2 class="text-center mb-4">게시글 작성</h2>
 
         <form th:action="@{/post/edit/{id}(id=${dto.id})}" th:object="${dto}" method="post">
-            <input th:type="hidden" name="authorName" th:field="*{authorName}" th:value="${session.loginMember.username}">
+            <input th:type="hidden" name="authorName" th:field="*{author}" th:value="${session.loginMember.username}">
 
             <!-- 제목 -->
             <div class="mb-3">

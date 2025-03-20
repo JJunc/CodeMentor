@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+<th:block layout:fragment="content">
+    <div class="container-xxl fluid">
+        <div class="row">
+            <!-- 왼쪽 네비게이션 -->
+            <div class="col-md-3 col-lg-2 p-3 bg-light">
+                <h4 class="text-center mb-4">내 계정</h4>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="account-tab" data-bs-toggle="tab" href="#account">계정 정보</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="posts-tab" data-bs-toggle="tab" href="#posts">내 게시글</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="comments-tab" data-bs-toggle="tab" href="#comments">내 댓글</a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 오른쪽 콘텐츠 영역 -->
+            <div class="col-md-9 col-lg-10 p-4">
+                <h3 class="text-center fw-bold">계정 정보</h3>
+                <div class="card shadow mt-5">
+                    <!-- 계정 정보 탭 -->
+                    <div class="card-body m-3" id="account">
+                        <div class="m-4">
+                            <h5 class="fw-bold">내 프로필</h5>
+                        </div>
+                        <div class="row m-3">
+                            <div class="col-2 fw-bold"><span>닉네임</span></div>
+                            <div class="col fw-semibold"><span>가나다라마바사</span></div>
+                            <div class="col d-flex justify-content-end">
+                                <button type="button" id="nicknameBtn" class="btn btn-primary btn-toggle" onclick="">
+                                    수정
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row m-3">
+                            <div class="col-2 fw-bold"><span>자기소개</span></div>
+                            <div class="col fw-semibold"><span>github.com</span></div>
+                            <div class="col d-flex justify-content-end">
+                                <button type="button" id="urlBtn" class="btn btn-primary btn-toggle edit-button">수정
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow mt-5">
+                    <!-- 계정 정보 탭 -->
+                    <div class="card-body m-3" id=" ">
+                        <div class="m-4">
+                            <h5 class="fw-bold">기본 정보</h5>
+                        </div>
+                        <div class="row m-3">
+                            <div class="col-2 fw-bold"><span>아이디</span></div>
+                            <div class="col fw-semibold"><span th:text="${member.username}"></span></div>
+                        </div>
+                        <div class="row m-3">
+                            <div class="col-2 fw-bold"><span>이메일</span></div>
+                            <div id="email" class="col fw-semibold"><span id="emailText"
+                                                                          th:text="${member.email}"></span></div>
+                            <div id="emailEditContainer" class="col" style="display: none;">
+                                <input type="email" id="emailInput" class="form-control" th:value="${member.email}">
+                                <p id="emailInvalid" class="text-danger"></p>
+                                <div class="d-flex justify-content-end mt-3">
+                                    <button type="button" class="btn btn-success btn-sm me-2"
+                                            onclick="editEmail()">변경
+                                    </button>
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                            onclick="cancelFieldEdit('email')">취소
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col d-flex justify-content-end">
+                                <button type="button" id="emailBtn"
+                                        class="btn btn-sm btn-primary btn-toggle edit-button"
+                                        onclick="toggleFieldEdit('email')">수정
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row m-3">
+                            <div class="col-2 fw-bold"><span>비밀번호</span></div>
+                            <div id="passwordEditContainer" class="col" style="display: none;">
+                                <label for="currentPasswordInput">현재 비밀번호</label>
+                                <input type="password" id="currentPasswordInput" class="form-control">
+                                <p id="currentPasswordInvalid" class="text-danger"></p>
+                                <label for="passwordInput">비밀번호</label>
+                                <input type="password" id="passwordInput" class="form-control">
+                                <p id="newPasswordInvalid" class="text-danger"></p>
+                                <label for="confirmPasswordInput">비밀번호 확인</label>
+                                <input type="password" id="confirmPasswordInput" class="form-control">
+                                <p id="confirmPasswordInvalid" class="text-danger"></p>
+                                <div class="d-flex justify-content-end mt-3">
+                                    <button id="passwordSaveBtn" type="button" class="btn btn-success btn-sm"
+                                            onclick="editPassword()">변경
+                                    </button>
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                            onclick="cancelFieldEdit('password')">취소
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="password" class="col d-flex justify-content-end">
+                                <button type="button" id="passwordBtn"
+                                        class="btn btn-primary btn-sm btn-toggle edit-button"
+                                        onclick="toggleFieldEdit('password')">수정
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row m-3">
+                            <div class="col-2 fw-bold"><span>가입일</span></div>
+                            <div class="col fw-semibold"><span
+                                    th:text="${#temporals.format(member.createdAt, 'yyyy-MM-dd')}"></span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function validateEmailFields() {
+            const emailInput = document.getElementById("emailInput").value;
+
+            const emailPattern = /^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+            const emailError = document.getElementById("emailInvalid");
+
+            // 현재 비밀번호 검사
+            if (!emailInput) {
+                emailError.innerText = "이메일을 입력해주세요.";
+                return false;
+            } else if (!emailPattern.test(emailInput)) {
+                emailError.innerText = "이메일 형식에 맞게 입력해주세요";
+                return false;
+            } else {
+                emailError.innerText = "";
+                return true;
+            }
+        }
+
+        function editEmail() {
+            let valid = validateEmailFields();
+
+            const email = document.getElementById("emailInput").value;
+
+            if (valid) {
+                // 비동기 요청 (axios)
+                axios.post('/my/edit/email', {email: email})
+                    .then(response => {
+                        if (response.data.success) {
+                            alert("이메일이 성공적으로 변경되었습니다.");
+                            document.querySelectorAll('input').forEach(input => input.value = "");
+                            document.querySelectorAll('p').forEach(p => p.text = "");
+                            document.querySelectorAll('.edit-button').forEach(b => b.style.display = "block");
+                            document.getElementById("emailEditContainer").style.display = "none";
+                            document.getElementById("emailInvalid").innerText = "";
+                            document.getElementById("emailText").innerText = response.data.data;
+                            window.location.reload();
+                        }
+                    })
+                    .catch(error => {
+                        if (error.response) {
+                            const errorCode = error.response.data.errorCode;
+                            const message = error.response.data.message;
+                            console.log("입력한 이메일 " + email);
+                            console.log("에러코드 " + errorCode);
+                            console.log("메세지 " + message);
+
+                            if (errorCode === "VALIDATION_ERROR") {
+                                // 유효성 검사 오류 메시지 표시
+                                document.getElementById("emailInvalid").innerText = message;
+                            } else if (errorCode === "DUPLICATED_EMAIL") {
+                                // 중복 이메일 오류 처리
+                                document.getElementById("emailInvalid").innerText = message;
+                            }
+
+                        }
+                    });
+            }
+        }
+
+        function validatePasswordFields() {
+            const currentPassword = document.getElementById("currentPasswordInput").value;
+            const password = document.getElementById("passwordInput").value;
+            const confirmPassword = document.getElementById("confirmPasswordInput").value;
+
+
+            let valid = {
+                current: false,
+                new: false,
+                confirm: false,
+            }
+
+            // 비밀번호 유효성 검사
+            const passwordPattern = /^(?=.*[a-zA-Z])(?=.*[!@#$%^*+=-])(?=.*[0-9]).{8,20}$/
+
+            // 현재 비밀번호 검사
+            if (!currentPassword) {
+                document.getElementById("currentPasswordInvalid").innerText = "현재 비밀번호를 입력해주세요.";
+            } else if (!passwordPattern.test(currentPassword)) {
+                document.getElementById("currentPasswordInvalid").innerText = "비밀번호는 영문, 숫자, 특수문자를 포함한 8~20자여야 합니다";
+            } else {
+                valid.current = true;
+                document.getElementById("currentPasswordInvalid").innerText = "";
+            }
+
+            // 새 비밀번호 검사
+            if (!password) {
+                document.getElementById("newPasswordInvalid").innerText = "새 비밀번호를 입력해주세요.";
+            } else if (!passwordPattern.test(password)) {
+                document.getElementById("newPasswordInvalid").innerText = "비밀번호는 영문, 숫자, 특수문자를 포함한 8~20자여야 합니다";
+            } else {
+                valid.new = true;
+                document.getElementById("newPasswordInvalid").innerText = "";
+            }
+
+            // 비밀번호 확인 검사
+            if (!confirmPassword) {
+                document.getElementById("confirmPasswordInvalid").innerText = "비밀번호 확인을 입력해주세요.";
+            } else if (confirmPassword != password) {
+                document.getElementById("confirmPasswordInvalid").innerText = "비밀번호가 일치하지 않습니다.";
+            } else {
+                valid.confirm = true;
+                document.getElementById("confirmPasswordInvalid").innerText = "";
+            }
+
+            console.log(valid.current);
+
+            return valid;
+        }
+
+        function editPassword() {
+            let valid = validatePasswordFields();
+
+            const currentPassword = document.getElementById("currentPasswordInput").value;
+            const password = document.getElementById("passwordInput").value;
+            const confirmPassword = document.getElementById("confirmPasswordInput").value;
+
+            const data = {
+                currentPassword: currentPassword,
+                password: password,
+                confirmPassword: confirmPassword
+            };
+
+            // 비동기 요청 (axios)
+            axios.post('/my/edit/password', data)
+                .then(response => {
+                    if (response.data.success) {
+                        alert("비밀번호가 성공적으로 변경되었습니다.");
+                        document.querySelectorAll('input').forEach(input => input.value = "");
+                        document.querySelectorAll('p').forEach(p => p.text = "");
+                        document.querySelectorAll('.edit-button').forEach(b => b.style.display = "block");
+                        document.getElementById("passwordEditContainer").style.display = "none";
+                    }
+                })
+                .catch(error => {
+                    if (error.response) {
+                        const errorCodes = error.response.data.errorCodes; // 여러 개의 에러 코드
+                        const messages = error.response.data.messages; // 여러 개의 에러 메시지
+
+                        if (Array.isArray(errorCodes) && Array.isArray(messages)) {
+                            errorCodes.forEach((errorCode, index) => {
+                                const message = messages[index] || "알 수 없는 오류가 발생했습니다.";
+                                console.log("에러코드 : " + errorCode)
+                                console.log(valid.current);
+
+                                if (valid.current) {
+                                    if (errorCode === "CURRENT_PASSWORD_MISMATCH") {
+                                        document.getElementById("currentPasswordInvalid").innerText = message;
+                                    }
+                                }
+
+                                if (valid.new && valid.confirm) {
+                                    if (errorCode === "PASSWORDS_DO_NOT_MATCH") {
+                                        document.getElementById("confirmPasswordInvalid").innerText = message;
+                                    }
+                                }
+
+                            });
+                        }
+                    }
+                });
+        }
+
+        function checkCurrentPassword() {
+            let valid = validatePasswordFields();
+            const currentPassword = document.getElementById("currentPasswordInput").value;
+
+            // 비동기 요청 (axios)
+            axios.post('/my/edit/password', {currentPassword: currentPassword})
+                .then(response => {
+                    if (response.data.success) {
+                        alert("비밀번호가 성공적으로 변경되었습니다.");
+                        document.querySelectorAll('input').forEach(input => input.value = "");
+                        document.querySelectorAll('p').forEach(p => p.text = "");
+                        document.querySelectorAll('.edit-button').forEach(b => b.style.display = "block");
+                        document.getElementById("passwordEditContainer").style.display = "none";
+                    }
+                })
+                .catch(error => {
+                    if (error.response) {
+                        const errorCodes = error.response.data.errorCodes; // 여러 개의 에러 코드
+                        const messages = error.response.data.messages; // 여러 개의 에러 메시지
+
+                        if (Array.isArray(errorCodes) && Array.isArray(messages)) {
+                            errorCodes.forEach((errorCode, index) => {
+                                const message = messages[index] || "알 수 없는 오류가 발생했습니다.";
+                                console.log("에러코드 : " + errorCode)
+
+                                if (valid.current) {
+                                    if (errorCode === "CURRENT_PASSWORD_MISMATCH") {
+                                        document.getElementById("currentPasswordInvalid").innerText = message;
+                                    }
+                                }
+
+                                if (valid.new && valid.confirm) {
+                                    if (errorCode === "PASSWORDS_DO_NOT_MATCH") {
+                                        document.getElementById("confirmPasswordInvalid").innerText = message;
+                                    }
+                                }
+
+                            });
+                        }
+                    }
+                });
+        }
+
+
+        function toggleFieldEdit(field) {
+            const fieldEditContainer = document.getElementById(field + "EditContainer");
+            const fieldBtn = document.getElementById(field + "Btn");
+            const fieldSpan = document.getElementById(field); // 예: email, nickname, password 등
+
+            // 모든 버튼 숨기기
+            document.querySelectorAll('.btn-toggle').forEach(btn => btn.style.display = "none");
+
+            // 입력폼 토글
+            if (fieldEditContainer.style.display === "none") {
+                fieldEditContainer.style.display = "block"; // 입력창 보이게
+                fieldBtn.style.display = "none"; // 수정 버튼 숨기기
+                fieldSpan.style.display = "none"; // 현재 표시된 값 숨기기
+            }
+        }
+
+        function cancelFieldEdit(field) {
+            // 수정 버튼과 필드 값 다시 보이기
+            document.getElementById(field + "EditContainer").style.display = "none"; // 입력창 숨김
+            document.getElementById(field + "Btn").style.display = "block"; // 수정 버튼 보이기
+            document.getElementById(field).style.display = "block"; // 기존 값 보이기
+
+            // 모든 버튼 다시 보이게
+            document.querySelectorAll('.btn-toggle').forEach(btn => btn.style.display = "block");
+            document.querySelectorAll('input').forEach(input => input.value = "");
+            document.querySelectorAll('p').forEach(p => p.text = "");
+        }
+
+    </script>
+</th:block>
+</html>

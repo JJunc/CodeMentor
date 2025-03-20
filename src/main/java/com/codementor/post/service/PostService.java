@@ -53,8 +53,13 @@ public class PostService {
         return postPage.map(post -> postListMapper.toDto(post));
     }
 
+    public Page<PostListDto> getMyPostList(String author, PostCategory category, Pageable pageable){
+        Page<Post> postPage = postRepository.findByCategoryAndAuthor(category, author, pageable);
+        return postPage.map(post -> postListMapper.toDto(post));
+    }
+
     public void createPost(PostCreateDto dto) {
-        Optional<Member> findMember = memberRepository.findByUsername(dto.getAuthorName());
+        Optional<Member> findMember = memberRepository.findByUsername(dto.getAuthor());
 
         log.info("작성 글 내용: {}", dto.getContent());
 
