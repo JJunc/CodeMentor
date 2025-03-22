@@ -93,12 +93,13 @@ public class PostController {
             return "/post/posts";
         }
 
-        log.info("댓글 유무 = {}" , post.getComments() == null ? "null" : post.getComments().isEmpty());
+        // 조회수 증가
+        postService.updateViews(post);
 
+        log.info("댓글 유무 = {}" , post.getComments() == null ? "null" : post.getComments().isEmpty());
 
         model.addAttribute("post", post);
         model.addAttribute("commentDto", new CommentDto());
-
 
         return "/post/post-detail";
     }

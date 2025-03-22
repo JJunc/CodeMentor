@@ -1,15 +1,12 @@
 package com.codementor.member.controller;
 
-import com.codementor.member.dto.EditResponseDto;
-import com.codementor.member.dto.LoginResponseDto;
-import com.codementor.member.dto.MemberEmailUpdateDto;
-import com.codementor.member.dto.MemberUpdateDto;
-import com.codementor.member.enums.CheckEmail;
+import com.codementor.comment.service.CommentService;
+import com.codementor.member.dto.*;
 import com.codementor.member.enums.CheckPassword;
 import com.codementor.member.enums.SessionConst;
 import com.codementor.member.service.MemberService;
+import com.codementor.post.enums.PostCategory;
 import com.codementor.post.service.PostService;
-import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -23,14 +20,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Controller
@@ -38,8 +32,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MyPageController {
 
-    private final PostService postService;
     private final MemberService memberService;
+    private final CommentService commentService;
 
     @GetMapping
     public String myPage(HttpSession session,
@@ -51,28 +45,67 @@ public class MyPageController {
         return "/member/mypage";
     }
 
-    @PostMapping("/check-email")
-    @ResponseBody
-    public ResponseEntity<String> checkEmail(@RequestBody MemberUpdateDto dto) {
-        boolean check = memberService.checkEmail(dto);
+    @GetMapping("/posts/{category}")
+    public String myPosts(HttpSession session,
+                          @PathVariable PostCategory category,
+                          Model model,
+                            @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        if (check) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("이미 사용 중인 이메일입니다.");
+        if (category == null) {
+            model.addAttribute("category", category.FREE);
+            return "redirect:/post/FREE";
         }
 
-        return ResponseEntity.ok("사용 가능한 이메일입니다.");
+        LoginResponseDto loginMember = (LoginResponseDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
+
+        log.info("카테고리 = {}", category);
+
+        model.addAttribute("category", category);
+        model.addAttribute("posts", memberService.getMyPostList(loginMember.getUsername(), category, pageable));
+        log.info("posts = {}", memberService.getMyPostList(loginMember.getUsername(), category, pageable));
+
+        return "/member/mypage-posts";
     }
 
-    @PostMapping("/check-nickname")
-    @ResponseBody
-    public ResponseEntity<String> checkNickname(@RequestBody MemberUpdateDto dto) {
-        boolean check = memberService.checkEmail(dto);
+    @GetMapping("/comments")
+    public String myComments(HttpSession session,
+                          Model model,
+                          @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        if (check) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("이미 사용 중인 이메일입니다.");
+        LoginResponseDto loginMember = (LoginResponseDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
+
+        model.addAttribute("comments", commentService.getMyComments(loginMember.getUsername(), pageable));
+
+        return "/member/mypage-comments";
+    }
+
+    @PostMapping("/edit/nickname")
+    @ResponseBody
+    public ResponseEntity editNickname(HttpSession session
+            , @Valid @RequestBody MemberEditNicknameDto dto
+            , BindingResult bindingResult) {
+
+        LoginResponseDto loginMember = (LoginResponseDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        EditResponseDto response = new EditResponseDto();
+
+        log.info("닉네임 변경 = {}", dto.getNickname());
+
+        if (bindingResult.hasErrors()) {
+            return ResponseEntity.badRequest().body(response);
         }
 
-        return ResponseEntity.ok("사용 가능한 이메일입니다.");
+        boolean nicknameError = memberService.editNickname(loginMember.getUsername(), dto);
+
+        if (!nicknameError) {
+            response.setSuccess(false);
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        log.info("변경된 닉네임= {}", dto.getNickname());
+
+        response.setSuccess(true);
+        response.setData(dto.getNickname());
+        return ResponseEntity.ok().body(response);
     }
 
     @PostMapping("/edit/email")
@@ -92,17 +125,15 @@ public class MyPageController {
         }
 
         // 비밀번호 변경 요청 처리
-        CheckEmail emailError = memberService.editEmail(loginMember.getUsername(), dto);
+        boolean emailError = memberService.editEmail(loginMember.getUsername(), dto);
 
-        log.info("이메일 에러코드 = {}", emailError.getErrorCode());
+        log.info("이메일 중복 발생 여부 = {}", emailError);
 
         // 오류 코드들을 순회하면서 리스트에 추가
-        if (emailError != CheckEmail.SUCCESS) { // SUCCESS가 아닌 경우에만 추가
+        if (!emailError) { // SUCCESS가 아닌 경우에만 추가
             response.setSuccess(false);
-            response.setErrorCode(emailError.getErrorCode());
-            response.setMessage(emailError.getMessage());
-            log.info("이메일 에러코드 = {}", emailError.getErrorCode());
-            return ResponseEntity.badRequest().body(response);
+            log.info("이메일 중복");
+            return ResponseEntity.badRequest().body("이메일 중복");
         }
 
 
@@ -115,7 +146,7 @@ public class MyPageController {
     @ResponseBody
     public ResponseEntity editPassword(
             HttpSession session,
-            @Valid @RequestBody MemberUpdateDto dto,
+            @Valid @RequestBody MemberEditPasswordDto dto,
             BindingResult bindingResult) {
 
         log.info("입력한 현재 비밀번호 = {}", dto.getCurrentPassword());
@@ -130,34 +161,37 @@ public class MyPageController {
         List<String> messages = new ArrayList<>();
 
         if (bindingResult.hasErrors()) {
-            log.info("유효성 검증 실패");
-
-            Optional<FieldError> error = bindingResult.getFieldErrors().stream()
+            Optional<FieldError> currentPassword = bindingResult.getFieldErrors().stream()
                     .filter(e -> e.getField().equals("currentPassword")) // 특정 필드만 필터링
                     .findFirst(); // 첫 번째 에러 찾기
 
+            Optional<FieldError> newPassword = bindingResult.getFieldErrors().stream()
+                    .filter(e -> e.getField().equals("password")) // 특정 필드만 필터링
+                    .findFirst(); // 첫 번째 에러 찾기
 
-            if (error.isEmpty()) {
-                log.info("검증 실행");
-                
-                CheckPassword checkPassword = memberService.checkPassword(loginMember.getUsername(), dto);
 
-                if (checkPassword != CheckPassword.SUCCESS) {
-                    errorCodes.add(checkPassword.getErrorCode());
-                    messages.add(checkPassword.getMessage());
-                    response.setErrorCodes(errorCodes);
-                    response.setMessages(messages);
+            if (currentPassword.isEmpty() || newPassword.isEmpty()) {
+                List<CheckPassword> passwordErrors = memberService.checkPassword(loginMember.getUsername(), dto);
+                for (CheckPassword error : passwordErrors) {
+                    if (error != CheckPassword.SUCCESS) {
+                        log.info("비밀번호 에러코드 = {}", error.getErrorCode());
+                        errorCodes.add(error.getErrorCode());
+                        messages.add(error.getMessage());
+                    }
+
+                    if (!errorCodes.isEmpty()) {
+                        response.setSuccess(false);
+                        response.setErrorCodes(errorCodes);
+                        response.setMessages(messages);
+                        return ResponseEntity.badRequest().body(response);
+                    }
                 }
+                return ResponseEntity.badRequest().body(response);
             }
-
-            return ResponseEntity.badRequest().body(response);
         }
 
         // 비밀번호 변경 요청 처리
         List<CheckPassword> passwordErrors = memberService.editPassword(loginMember.getUsername(), dto);
-
-
-        // 요청 값 유효성 검사
 
         // 오류 코드들을 순회하면서 리스트에 추가
         for (CheckPassword error : passwordErrors) {
@@ -182,5 +216,4 @@ public class MyPageController {
         response.setMessage(CheckPassword.SUCCESS.getMessage());
         return ResponseEntity.ok(response);
     }
-
 }

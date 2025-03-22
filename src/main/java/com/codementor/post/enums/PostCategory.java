@@ -8,7 +8,7 @@ public enum PostCategory {
 
     String postCategory;
 
-    private PostCategory(String postCategory) {
+    PostCategory(String postCategory) {
         this.postCategory = postCategory;
     }
 

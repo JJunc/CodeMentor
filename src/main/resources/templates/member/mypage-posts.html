@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+<th:block layout:fragment="content">
+    <div class="container-xxl">
+        <div class="row">
+            <!-- 왼쪽 네비게이션 -->
+            <div class="col-md-3 col-lg-2 p-3 bg-light">
+                <h4 class="text-center mb-4">내 계정</h4>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="account-tab" data-bs-toggle="tab" th:href="@{/my}">계정 정보</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="posts-tab" data-bs-toggle="tab" th:href="@{/my/posts/free}">내 게시글</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="comments-tab" data-bs-toggle="tab" th:href="@{/my/comments}">내 댓글</a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 오른쪽 콘텐츠 영역 -->
+            <div class="col-md-9 min-vh-100 col-lg-10 p-4">
+                <h3 class="text-center fw-bold">내 게시글</h3>
+                <ul class="nav nav-tabs justify-content-center align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link"
+                           th:classappend="${category.postCategory eq '자유게시판'} ? active : ''"
+                           th:href="@{/my/posts/free}">자유게시판</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${category.postCategory eq '백엔드'} ? active : ''" active
+                           th:href="@{/my/posts/backend}">백엔드</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:if="${category.postCategory == '프론트엔드'} ? 'active' : ''"
+                           th:href="@{/my/posts/frontend}">프론트엔드</a>
+                    </li>
+                    <li class="nav-item">
+                        <a th:classappend="${category.postCategory eq '취업'} ? 'active' : ''" class="nav-link"
+                           th:href="@{/my/posts/job}">취업</a>
+                    </li>
+                </ul>
+
+                <!-- 게시글 목록 -->
+                <div class="mt-4">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                        <colgroup>
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="10%">
+                            <col width="*%">
+                            <col width="10%">
+                            <col width="10%">
+                        </colgroup>
+                        <tr class="text-center">
+                            <th>글번호</th>
+                            <th>카테고리</th>
+                            <th>작성자</th>
+                            <th>제목</th>
+                            <th>날짜</th>
+                            <th>조회수</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="post : ${posts}" class="text-center">
+                            <div th:if="i">
+                                <td th:text="${post.id}"></td>
+                                <td th:text="${post.category.getPostCategory()}"></td>
+                                <td th:text="${post.author}"></td>
+                                <td><a th:href="@{/post/{category}/{id}(category=${post.category}, id=${post.id})}"
+                                       th:text="${post.title}"></a></td>
+                                <td th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}"></td>
+                                <td th:text="${post.views}"></td>
+                            </div>
+                        </tr>
+                        <tr th:if="${posts == null or posts.isEmpty()}" class="text-center">
+                            <td colspan="6" rowspan="2">게시글이 존재하지 않습니다.<br>게시글을 작성하여 다른 사람들과 소통해보세요!</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 글 작성 버튼 -->
+                <div th:if="${session.loginMember != null}" class="text-end">
+                    <a th:href="@{/post/create}" class="btn btn-primary">글 작성</a>
+                </div>
+
+                <div th:if="${posts.totalPages > 0}" class="pagination justify-content-center">
+                    <ul class="pagination">
+                        <li class="page-item">
+                            <a th:href="@{/post/{category}(category=${category}, page=0, size=10)}"
+                               th:class="${posts.isFirst()} ? 'disabled page-link' : 'page-link' ">처음</a>
+                        </li>
+                        <li class="page-item">
+                            <a th:href="@{/post/{category}(category=${category}, page=${posts.number - 1} , size=10)}"
+                               th:class="${posts.isFirst()} ? 'disabled page-link' : 'page-link' ">이전</a>
+                        </li>
+
+                        <!-- 페이지 번호 링크 -->
+                        <li th:each="i : ${#numbers.sequence(0, posts.totalPages - 1)}" class="page-item">
+                            <a th:href="@{/post/{category}(category=${category}, page=${i}, size=10)}"
+                               th:text="${i + 1}" class="page-link"
+                               th:classappend="${posts.number == i} ? ' active' : ''"></a>
+                        </li>
+
+                        <li class="page-item">
+                            <a th:href="@{/post/{category}(category=${category}, page=${posts.number + 1}, size=10)}"
+                               th:class="${posts.isLast()} ? 'disabled page-link' : 'page-link' ">다음</a>
+                        </li>
+                        <li class="page-item">
+                            <a th:href="@{/post/{category}(category=${category}, page=${posts.totalPages - 1}, size=10)}"
+                               th:class="${posts.isLast()} ? 'disabled page-link' : 'page-link' ">마지막</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    </script>
+</th:block>
+</html>

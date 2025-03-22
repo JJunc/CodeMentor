@@ -1,23 +1,31 @@
 package com.codementor.member.service;
 
+import com.codementor.comment.dto.CommentDto;
+import com.codementor.comment.entity.Comment;
 import com.codementor.member.dto.*;
 import com.codementor.member.dto.mapper.LoginMapper;
 import com.codementor.member.dto.mapper.MemberUpdateMapper;
 import com.codementor.member.dto.mapper.MyPageMapper;
 import com.codementor.member.dto.mapper.signUpMapper;
 import com.codementor.member.entity.Member;
-import com.codementor.member.enums.CheckEmail;
 import com.codementor.member.enums.CheckPassword;
 import com.codementor.member.repository.MemberRepository;
+import com.codementor.post.dto.PostListDto;
+import com.codementor.post.dto.mapper.PostListMapper;
+import com.codementor.post.entity.Post;
+import com.codementor.post.enums.PostCategory;
+import com.codementor.post.repository.PostRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -25,11 +33,14 @@ import java.util.List;
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final PostRepository postRepository;
+    private final PostListMapper postListMapper;
     private final LoginMapper loginMapper;
     private final signUpMapper signUpMapper;
     private final MemberUpdateMapper memberUpdateMapper;
     private final MyPageMapper myPageMapper;
     private final PasswordEncoder passwordEncoder;
+
 
     public void signUp(SignUpRequestDto dto) {
 
@@ -52,16 +63,19 @@ public class MemberService {
         return dto.getPassword().equals(dto.getConfirmPassword());
     }
 
-    public boolean checkEmail(MemberUpdateDto dto) {
-        return memberRepository.findByEmail(dto.getEmail()).isPresent();
-    }
-
-    public CheckPassword checkPassword(String username, MemberUpdateDto dto) {
+    public List<CheckPassword> checkPassword(String username, MemberEditPasswordDto dto) {
         Member member = memberRepository.findByUsername(username).orElse(null);
+        List<CheckPassword> checkPasswords = new ArrayList<>();
+
         if (!passwordEncoder.matches(dto.getCurrentPassword(), member.getPassword())) {
-            return CheckPassword.CURRENT_PASSWORD_MISMATCH;
+            checkPasswords.add(CheckPassword.CURRENT_PASSWORD_MISMATCH);
         }
-        return CheckPassword.SUCCESS;
+
+        if(passwordEncoder.matches(dto.getPassword(), member.getPassword())) {
+           checkPasswords.add(CheckPassword.SAME_AS_OLD);
+        }
+
+        return checkPasswords;
     }
 
     public LoginResponseDto login(LoginRequestDto dto) {
@@ -70,7 +84,7 @@ public class MemberService {
                 .orElse(null));
     }
 
-    public MemberUpdateDto memberToUpdateDto(String username) {
+    public MemberEditPasswordDto memberToUpdateDto(String username) {
         return memberUpdateMapper.toDto(memberRepository.findByUsername(username).orElse(null));
     }
 
@@ -79,24 +93,37 @@ public class MemberService {
     }
 
     @Transactional
-    public CheckEmail editEmail(String username, MemberEmailUpdateDto dto) {
+    public boolean editNickname(String username, MemberEditNicknameDto dto) {
+        Member member = memberRepository.findByUsername(username).orElse(null);
+        log.info("회원 존재 여부 = {}", member.toString());
+
+        if(member.getNickname().equals(dto.getNickname())) {
+            return false;
+        }
+
+        member.updateNickname(dto);
+        return true;
+    }
+
+    @Transactional
+    public boolean editEmail(String username, MemberEmailUpdateDto dto) {
         Member member = memberRepository.findByUsername(username).orElse(null);
         log.info("회원 존재 여부 = {}", member.toString());
 
         // 이메일 중복검사
         if (member.getEmail().equals(dto.getEmail())) {
             log.info("이메일 중복");
-            return CheckEmail.DUPLICATED_EMAIL;
+            return false;
         }
 
         log.info("이메일 변경");
         member.updateEmail(dto);
 
-        return CheckEmail.SUCCESS;
+        return true;
     }
 
     @Transactional
-    public List<CheckPassword> editPassword(String username, MemberUpdateDto dto) {
+    public List<CheckPassword> editPassword(String username, MemberEditPasswordDto dto) {
         Member member = memberRepository.findByUsername(username).orElse(null);
         List<CheckPassword> checkPasswords = new ArrayList<>();
 
@@ -122,5 +149,11 @@ public class MemberService {
         checkPasswords.add(CheckPassword.SUCCESS);
         return checkPasswords;
     }
+
+    public Page<PostListDto> getMyPostList(String username, PostCategory category, Pageable pageable) {
+        Page<Post> postPage =  postRepository.findByCategoryAndAuthor(category, username, pageable);
+        return postPage.map(post -> postListMapper.toDto(post));
+    }
+
 
 }

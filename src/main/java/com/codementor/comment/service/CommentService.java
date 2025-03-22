@@ -6,11 +6,13 @@ import com.codementor.comment.entity.Comment;
 import com.codementor.comment.repository.CommentRepository;
 import com.codementor.member.entity.Member;
 import com.codementor.member.repository.MemberRepository;
+import com.codementor.post.dto.mapper.PostDetailMapper;
 import com.codementor.post.entity.Post;
 import com.codementor.post.repository.PostRepository;
 import com.codementor.reply.dto.mapper.ReplyMapper;
 import lombok.RequiredArgsConstructor;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class CommentService {
 
@@ -28,6 +31,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final CommentMapper commentMapper;
     private final ReplyMapper replyMapper;
+    private final PostDetailMapper postDetailMapper;
 
     public Long create(CommentDto commentDto) {
         // 댓글을 작성할 게시판과 회원 조회
@@ -50,9 +54,22 @@ public class CommentService {
         Page<Comment> commentPage = commentRepository.findByPostId(postId, pageable);
         return commentPage.map(comment -> {
             CommentDto dto = commentMapper.toDto(comment);
+            log.info("댓글이 작성된 날짜 = {}",dto.getCreatedAt());
             dto.setReplies(comment.getReplies().stream()
                     .map(replyMapper::toDto)
                     .collect(Collectors.toList()));
+            return dto;
+        });
+    }
+
+    public Page<CommentDto> getMyComments(String username, Pageable pageable) {
+        Page<Comment> commentPage = commentRepository.findByUsername(username, pageable);
+        return commentPage.map(comment -> {
+            CommentDto dto = commentMapper.toDto(comment);
+            Post post = postRepository.findById(dto.getPostId()).get();
+            log.info("댓글이 작성된 게시글 = {}",post.getTitle());
+            log.info("댓글이 작성된 날짜 = {}",dto.getCreatedAt());
+            dto.setPostDetail(postDetailMapper.toDto(post));
             return dto;
         });
     }

@@ -56,7 +56,6 @@
                     <button th:if="${session.loginMember != null}" type="button" class="btn btn-primary"
                             onclick="addComment()">작성
                     </button>
-                    <a th:if="${session.loginMember == null}" th:href="@{/member/login}" class="btn btn-primary">로그인</a>
                 </form>
 
                 <!-- 댓글 수정 폼 -->
@@ -107,7 +106,7 @@
         });
 
 
-        function createComment() {
+        function addComment() {
             const author = loginMember
             const content = document.getElementById("commentContent").value;
 

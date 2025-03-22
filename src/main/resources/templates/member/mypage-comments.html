@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+<th:block layout:fragment="content">
+    <div class="container-xxl">
+        <div class="row">
+            <!-- 왼쪽 네비게이션 -->
+            <div class="col-md-3 col-lg-2 p-3 bg-light">
+                <h4 class="text-center mb-4">내 계정</h4>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="account-tab" data-bs-toggle="tab" th:href="@{/my}">계정 정보</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="posts-tab" data-bs-toggle="tab" th:href="@{/my/posts/free}">내 게시글</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="comments-tab" data-bs-toggle="tab" th:href="@{/my/comments}">내 댓글</a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- 오른쪽 콘텐츠 영역 -->
+            <div class="col-md-9 col-lg-10 p-4">
+                <h3 class="text-center fw-bold">내 게시글</h3>
+
+                <!-- 게시글 목록 -->
+                <div class="mt-4">
+                    <table class="table table-hover">
+                        <thead class="table-light">
+                        <colgroup>
+                            <col width="*%">
+                        </colgroup>
+                        <tr class="text-center">
+                            <th>댓글</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="comment : ${comments}" class="text-center">
+                            <div th:if="i">
+                                <td class="text-start">
+                                    <a th:href="@{/post/{category}/{id}(category = ${comment.postDetail.category}, id=${comment.postDetail.id})}">
+                                        <p th:text="${comment.content}" class="text-black"></p>
+                                        <p th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd hh:mm a')}" class="text-muted small"></p>
+                                        <p th:text="${comment.postDetail.title}" class="text-muted small"></p>
+                                    </a></td>
+                            </div>
+                        </tr>
+                        <tr th:if="${comments == null or comments.isEmpty()}" class="text-center">
+                            <td colspan="6" rowspan="2">댓글이 존재하지 않습니다.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+
+                <div th:if="${comments.totalPages > 0}" class="pagination justify-content-center">
+                    <ul class="pagination">
+                        <li class="page-item">
+                            <a th:href="@{/comments(page=0, size=10)}"
+                               th:class="${comments.isFirst()} ? 'disabled page-link' : 'page-link' ">처음</a>
+                        </li>
+                        <li class="page-item">
+                            <a th:href="@{/comments(page=${comments.number - 1} , size=10)}"
+                               th:class="${comments.isFirst()} ? 'disabled page-link' : 'page-link' ">이전</a>
+                        </li>
+
+                        <!-- 페이지 번호 링크 -->
+                        <li th:each="i : ${#numbers.sequence(0, comments.totalPages - 1)}" class="page-item">
+                            <a th:href="@{/comments(page=${i}, size=10)}"
+                               th:text="${i + 1}" class="page-link"
+                               th:classappend="${comments.number == i} ? ' active' : ''"></a>
+                        </li>
+
+                        <li class="page-item">
+                            <a th:href="@{/comments(page=${comments.number + 1}, size=10)}"
+                               th:class="${comments.isLast()} ? 'disabled page-link' : 'page-link' ">다음</a>
+                        </li>
+                        <li class="page-item">
+                            <a th:href="@{/comments(page=${comments.totalPages - 1}, size=10)}"
+                               th:class="${comments.isLast()} ? 'disabled page-link' : 'page-link' ">마지막</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+
+            // 년, 월, 일, 시, 분 추출
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0'); // 월은 0부터 시작하므로 +1 필요
+            const day = String(date.getDate()).padStart(2, '0');
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+
+            // 'yyyy-MM-dd HH:mm' 형식으로 반환
+            return `${year}-${month}-${day} ${hours}:${minutes}`;
+        }
+
+       formatDate(comment.createdAt);
+    </script>
+</th:block>
+</html>

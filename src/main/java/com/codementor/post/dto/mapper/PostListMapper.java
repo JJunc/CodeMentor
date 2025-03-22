@@ -11,9 +11,9 @@ public interface PostListMapper {
 
     PostListMapper INSTANCE = Mappers.getMapper(PostListMapper.class);
 
-    @Mapping(source = "author.username", target = "author")
+    @Mapping(source = "author.nickname", target = "author")
     PostListDto toDto(Post post);
 
-    @Mapping(source = "author", target = "author.username")
+    @Mapping(source = "author", target = "author.nickname")
     Post toEntity(PostListDto postListDto);
 }

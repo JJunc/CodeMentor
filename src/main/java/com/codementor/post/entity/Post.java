@@ -2,6 +2,7 @@ package com.codementor.post.entity;
 
 import com.codementor.comment.entity.Comment;
 import com.codementor.member.entity.Member;
+import com.codementor.post.dto.PostDetailDto;
 import com.codementor.post.dto.PostUpdateDto;
 import com.codementor.post.enums.PostCategory;
 import jakarta.persistence.*;
@@ -65,5 +66,9 @@ public class Post {
         this.title = dto.getTitle();
         this.content = dto.getContent();
         this.category = dto.getCategory();
+    }
+
+    public void increaseViews() {
+        this.views += 1;  // Dirty Checking 활성화됨
     }
 }

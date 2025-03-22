@@ -2,20 +2,20 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/layout}">
 <th:block layout:fragment="content">
-    <div class="container-xxl fluid">
+    <div class="container-xxl">
         <div class="row">
             <!-- 왼쪽 네비게이션 -->
-            <div class="col-md-3 col-lg-2 p-3 bg-light">
+            <div class="col-md-3 min-vh-100 col-lg-2 p-3 bg-light">
                 <h4 class="text-center mb-4">내 계정</h4>
                 <ul class="nav flex-column">
                     <li class="nav-item">
-                        <a class="nav-link active" id="account-tab" data-bs-toggle="tab" href="#account">계정 정보</a>
+                        <a class="nav-link active" id="account-tab" data-bs-toggle="tab" th:href="@{/my}">계정 정보</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="posts-tab" data-bs-toggle="tab" href="#posts">내 게시글</a>
+                        <a class="nav-link" id="posts-tab" data-bs-toggle="tab" th:href="@{/my/posts/free}">내 게시글</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" id="comments-tab" data-bs-toggle="tab" href="#comments">내 댓글</a>
+                        <a class="nav-link" id="comments-tab" data-bs-toggle="tab" th:href="@{/my/comments}">내 댓글</a>
                     </li>
                 </ul>
             </div>
@@ -31,10 +31,25 @@
                         </div>
                         <div class="row m-3">
                             <div class="col-2 fw-bold"><span>닉네임</span></div>
-                            <div class="col fw-semibold"><span>가나다라마바사</span></div>
+                            <div id="nickname" class="col fw-semibold"><span id="nicknameText"
+                                                                             th:text="${member.nickname}"></span></div>
+                            <div id="nicknameEditContainer" class="col" style="display: none;">
+                                <input type="email" id="nicknameInput" class="form-control"
+                                       th:value="${member.nickname}">
+                                <p id="nicknameInvalid" class="text-danger"></p>
+                                <div class="d-flex justify-content-end mt-3">
+                                    <button type="button" class="btn btn-success btn-sm me-2"
+                                            onclick="editNickname()">변경
+                                    </button>
+                                    <button type="button" class="btn btn-secondary btn-sm"
+                                            onclick="cancelFieldEdit('nickname')">취소
+                                    </button>
+                                </div>
+                            </div>
                             <div class="col d-flex justify-content-end">
-                                <button type="button" id="nicknameBtn" class="btn btn-primary btn-toggle" onclick="">
-                                    수정
+                                <button type="button" id="nicknameBtn"
+                                        class="btn btn-sm btn-primary btn-toggle edit-button"
+                                        onclick="toggleFieldEdit('nickname')">수정
                                 </button>
                             </div>
                         </div>
@@ -121,6 +136,56 @@
         </div>
     </div>
     <script>
+        function validateNicknameField() {
+            const nicknameInput = document.getElementById("nicknameInput").value;
+
+            const nicknamePattern = /[가-힣a-zA-Z0-9]{2,10}/;
+
+            const nicknameError = document.getElementById("nicknameInvalid");
+
+            // 현재 비밀번호 검사
+            if (!nicknameInput) {
+                nicknameError.innerText = "닉네임을을 입력해주세요.";
+                return false;
+            } else if (!nicknamePattern.test(nicknameInput)) {
+                nicknameError.innerText = "한글 또는 영문을 사용한 2 ~10자여야 합니다.";
+                return false;
+            } else {
+                nicknameError.innerText = "";
+                return true;
+            }
+        }
+
+
+        function editNickname() {
+            let valid = validateNicknameField();
+
+            const nickname = document.getElementById("nicknameInput").value;
+
+            if (valid) {
+                // 비동기 요청 (axios)
+                axios.post('/my/edit/nickname', {nickname: nickname})
+                    .then(response => {
+                        if (response.data.success) {
+                            alert("닉네임이 성공적으로 변경되었습니다.");
+                            document.querySelectorAll('input').forEach(input => input.value = "");
+                            document.querySelectorAll('p').forEach(p => p.text = "");
+                            document.querySelectorAll('.edit-button').forEach(b => b.style.display = "block");
+                            document.getElementById("nicknameEditContainer").style.display = "none";
+                            document.getElementById("nicknameValid").innerText = "";
+                            document.getElementById("nicknameText").innerText = response.data.data;
+                            window.location.reload();
+                        }
+                    })
+                    .catch(error => {
+                        if (error.response) {
+                            console.log("입력한 닉네임 " + nickname);
+                            document.getElementById("nicknameInvalid").innerText = '이미 사용중인 닉네임 입니다';
+                        }
+                    });
+            }
+        }
+
         function validateEmailFields() {
             const emailInput = document.getElementById("emailInput").value;
 
@@ -163,20 +228,8 @@
                     })
                     .catch(error => {
                         if (error.response) {
-                            const errorCode = error.response.data.errorCode;
-                            const message = error.response.data.message;
                             console.log("입력한 이메일 " + email);
-                            console.log("에러코드 " + errorCode);
-                            console.log("메세지 " + message);
-
-                            if (errorCode === "VALIDATION_ERROR") {
-                                // 유효성 검사 오류 메시지 표시
-                                document.getElementById("emailInvalid").innerText = message;
-                            } else if (errorCode === "DUPLICATED_EMAIL") {
-                                // 중복 이메일 오류 처리
-                                document.getElementById("emailInvalid").innerText = message;
-                            }
-
+                            document.getElementById("emailInvalid").innerText = '이미 사용중인 이메일 입니다';
                         }
                     });
             }
@@ -273,46 +326,9 @@
                                     }
                                 }
 
-                                if (valid.new && valid.confirm) {
-                                    if (errorCode === "PASSWORDS_DO_NOT_MATCH") {
-                                        document.getElementById("confirmPasswordInvalid").innerText = message;
-                                    }
-                                }
-
-                            });
-                        }
-                    }
-                });
-        }
-
-        function checkCurrentPassword() {
-            let valid = validatePasswordFields();
-            const currentPassword = document.getElementById("currentPasswordInput").value;
-
-            // 비동기 요청 (axios)
-            axios.post('/my/edit/password', {currentPassword: currentPassword})
-                .then(response => {
-                    if (response.data.success) {
-                        alert("비밀번호가 성공적으로 변경되었습니다.");
-                        document.querySelectorAll('input').forEach(input => input.value = "");
-                        document.querySelectorAll('p').forEach(p => p.text = "");
-                        document.querySelectorAll('.edit-button').forEach(b => b.style.display = "block");
-                        document.getElementById("passwordEditContainer").style.display = "none";
-                    }
-                })
-                .catch(error => {
-                    if (error.response) {
-                        const errorCodes = error.response.data.errorCodes; // 여러 개의 에러 코드
-                        const messages = error.response.data.messages; // 여러 개의 에러 메시지
-
-                        if (Array.isArray(errorCodes) && Array.isArray(messages)) {
-                            errorCodes.forEach((errorCode, index) => {
-                                const message = messages[index] || "알 수 없는 오류가 발생했습니다.";
-                                console.log("에러코드 : " + errorCode)
-
-                                if (valid.current) {
-                                    if (errorCode === "CURRENT_PASSWORD_MISMATCH") {
-                                        document.getElementById("currentPasswordInvalid").innerText = message;
+                                if (valid.new) {
+                                    if (errorCode === "PASSWORD_SAME_AS_OLD") {
+                                        document.getElementById("newPasswordInvalid").innerText = message;
                                     }
                                 }
 
@@ -327,7 +343,6 @@
                     }
                 });
         }
-
 
         function toggleFieldEdit(field) {
             const fieldEditContainer = document.getElementById(field + "EditContainer");

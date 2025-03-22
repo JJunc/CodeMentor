@@ -1,7 +1,8 @@
 package com.codementor.member.entity;
 
+import com.codementor.member.dto.MemberEditNicknameDto;
+import com.codementor.member.dto.MemberEditPasswordDto;
 import com.codementor.member.dto.MemberEmailUpdateDto;
-import com.codementor.member.dto.MemberUpdateDto;
 import com.codementor.member.enums.MemberRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -50,11 +51,15 @@ public class Member {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    public void updatePassword(MemberUpdateDto dto) {
-        this.password = dto.getPassword();
+    public void updateNickname(MemberEditNicknameDto dto) {
+        this.nickname = dto.getNickname();
     }
 
     public void updateEmail(MemberEmailUpdateDto dto) {
         this.email = dto.getEmail();
     }
+    public void updatePassword(MemberEditPasswordDto dto) {
+        this.password = dto.getPassword();
+    }
+
 }
