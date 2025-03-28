@@ -1,5 +1,6 @@
 package com.codementor.member.dto;
 
+import com.codementor.member.enums.MemberStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -31,5 +32,7 @@ public class SignUpRequestDto {
 
     @NotBlank(message="이메일을 입력해주세요")
     private String email;
+
+    private MemberStatus status = MemberStatus.ACTIVE;
 
 }

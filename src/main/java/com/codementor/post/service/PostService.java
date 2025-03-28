@@ -49,10 +49,9 @@ public class PostService {
     private String uploadDir;
 
     public Page<PostListDto> getPostList(PostCategory category, Pageable pageable) {
-        Page<Post> postPage =  postRepository.findByCategory(category, pageable);
-        return postPage.map(post -> postListMapper.toDto(post));
+        return postRepository.findByCategoryAndNotDeleted(category, pageable)
+                .map(postListMapper::toDto);
     }
-
 
     public void createPost(PostCreateDto dto) {
         Optional<Member> findMember = memberRepository.findByUsername(dto.getAuthor());

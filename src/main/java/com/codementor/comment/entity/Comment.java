@@ -31,14 +31,12 @@ public class Comment {
     private String isDeleted = "N";
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false, name="post_id", referencedColumnName = "id")
     private Post post;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "author_username", referencedColumnName = "username")
     private Member member;
-
-    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
-    private List<Reply> replies = new ArrayList<>();
 
     @CreatedDate
     private LocalDateTime createdAt = LocalDateTime.now();

@@ -18,6 +18,7 @@ public class PostUpdateDto {
     private String title;
     private PostCategory category;
     private String content;
+    private String isDeleted;
     private LocalDateTime updatedAt;
 
 }

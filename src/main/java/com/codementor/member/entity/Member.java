@@ -1,9 +1,11 @@
 package com.codementor.member.entity;
 
+import com.codementor.admin.entity.MemberSuspension;
 import com.codementor.member.dto.MemberEditNicknameDto;
 import com.codementor.member.dto.MemberEditPasswordDto;
 import com.codementor.member.dto.MemberEmailUpdateDto;
 import com.codementor.member.enums.MemberRole;
+import com.codementor.member.enums.MemberStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -24,7 +26,6 @@ public class Member {
     // 사용자가 아이디를 아이디를 변경하는 경우가 존재하기 때문에 자동키 사용
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "member_id")
     private Long id;
 
     @Column(nullable = false, unique = true)
@@ -38,6 +39,10 @@ public class Member {
 
     @Column(nullable = false)
     private String email;
+
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private MemberStatus status = MemberStatus.ACTIVE;
 
     private String url;
 
@@ -61,5 +66,7 @@ public class Member {
     public void updatePassword(MemberEditPasswordDto dto) {
         this.password = dto.getPassword();
     }
+
+    public void updateStatus(MemberStatus status) {}
 
 }

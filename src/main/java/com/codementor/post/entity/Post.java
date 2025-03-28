@@ -40,12 +40,6 @@ public class Post {
     @JoinColumn(nullable = false, name = "author_username", referencedColumnName = "username")
     private Member author;
 
-    @OneToMany(mappedBy = "post", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
-    private List<Comment> comments = new ArrayList<>();
-
-    @OneToMany(mappedBy = "post", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
-    private List<PostImage> images = new ArrayList<>();
-
     @Column(columnDefinition = "integer default 0")
     @ColumnDefault("0")
     private int views = 0;

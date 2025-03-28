@@ -3,10 +3,7 @@ package com.codementor.member.service;
 import com.codementor.comment.dto.CommentDto;
 import com.codementor.comment.entity.Comment;
 import com.codementor.member.dto.*;
-import com.codementor.member.dto.mapper.LoginMapper;
-import com.codementor.member.dto.mapper.MemberUpdateMapper;
-import com.codementor.member.dto.mapper.MyPageMapper;
-import com.codementor.member.dto.mapper.signUpMapper;
+import com.codementor.member.dto.mapper.*;
 import com.codementor.member.entity.Member;
 import com.codementor.member.enums.CheckPassword;
 import com.codementor.member.repository.MemberRepository;
@@ -37,10 +34,15 @@ public class MemberService {
     private final PostListMapper postListMapper;
     private final LoginMapper loginMapper;
     private final signUpMapper signUpMapper;
+    private final MemberListMapper memberListMapper;
     private final MemberUpdateMapper memberUpdateMapper;
     private final MyPageMapper myPageMapper;
     private final PasswordEncoder passwordEncoder;
 
+
+    public Page<MemberListDto> getAllMembers(Pageable pageable) {
+        return memberRepository.findAll(pageable).map(m -> memberListMapper.toDto(m));
+    }
 
     public void signUp(SignUpRequestDto dto) {
 

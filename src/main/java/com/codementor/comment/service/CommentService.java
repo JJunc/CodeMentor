@@ -55,9 +55,17 @@ public class CommentService {
         return commentPage.map(comment -> {
             CommentDto dto = commentMapper.toDto(comment);
             log.info("댓글이 작성된 날짜 = {}",dto.getCreatedAt());
-            dto.setReplies(comment.getReplies().stream()
-                    .map(replyMapper::toDto)
-                    .collect(Collectors.toList()));
+            return dto;
+        });
+    }
+
+    public Page<CommentDto> getComments(Pageable pageable) {
+        Page<Comment> commentPage = commentRepository.findAll(pageable);
+        return commentPage.map(comment -> {
+            Post post = postRepository.findById(comment.getPost().getId()).get();
+            CommentDto dto = commentMapper.toDto(comment);
+            dto.setPostDetail(postDetailMapper.toDto(post));
+            log.info("댓글이 작성된 날짜 = {}",dto.getCreatedAt());
             return dto;
         });
     }

@@ -73,9 +73,9 @@
 
 
                 <div class="mt-4">
-                    <div th:if="${post.comments == null or post.comments.isEmpty()}">
-                        <p>댓글이 존재하지 않습니다. 댓글을 작성해보세요</p>
-                        <a th:if="${session.loginMember == null}" , th:href="@{/member/login}" class="btn btn-primary">로그인</a>
+                    <div th:if="${session.loginMember == null}" class="mb-5" >
+                        <p>댓글을 작성하려면 로그인 해주세요</p>
+                        <a th:href="@{/member/login}" class="btn btn-primary">로그인</a>
                     </div>
                     <ul id="commentList" class="list-unstyled">
 

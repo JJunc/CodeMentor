@@ -26,6 +26,7 @@ public class CommentDto {
     private String author;
     private PostDetailDto postDetail;
     private String content;
+    private String isDeleted;
     private List<ReplyDto> replies = new ArrayList<>();
     private int replyCount;
     private LocalDateTime createdAt = LocalDateTime.now();
