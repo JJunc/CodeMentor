@@ -1,11 +1,15 @@
 package com.codementor.member.service;
 
+import com.codementor.admin.entity.MemberSuspension;
+import com.codementor.admin.repository.MemberSuspensionRepository;
 import com.codementor.comment.dto.CommentDto;
 import com.codementor.comment.entity.Comment;
 import com.codementor.member.dto.*;
 import com.codementor.member.dto.mapper.*;
 import com.codementor.member.entity.Member;
 import com.codementor.member.enums.CheckPassword;
+import com.codementor.member.enums.MemberRole;
+import com.codementor.member.enums.MemberStatus;
 import com.codementor.member.repository.MemberRepository;
 import com.codementor.post.dto.PostListDto;
 import com.codementor.post.dto.mapper.PostListMapper;
@@ -30,6 +34,7 @@ import java.util.stream.Collectors;
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final MemberSuspensionRepository memberSuspensionRepository;
     private final PostRepository postRepository;
     private final PostListMapper postListMapper;
     private final LoginMapper loginMapper;
@@ -81,9 +86,22 @@ public class MemberService {
     }
 
     public LoginResponseDto login(LoginRequestDto dto) {
-        return loginMapper.toDto(memberRepository.findByUsername(dto.getUsername())
-                .filter(m -> passwordEncoder.matches(dto.getPassword(), m.getPassword()))
-                .orElse(null));
+
+        Member member = memberRepository.findByUsername(dto.getUsername()).orElse(null);
+        log.info("로그인 요청 회원 번호: {}", member.getId());
+        LoginResponseDto loginResponseDto = loginMapper.toDto(member);
+        if(passwordEncoder.matches(dto.getPassword(), member.getPassword())){
+            return null;
+        }
+
+        if(member.getStatus() != MemberStatus.ACTIVE){
+           MemberSuspension memberSuspension = memberSuspensionRepository.findByMemberId(member.getId()).orElse(null);
+           loginResponseDto.setStartDate(memberSuspension.getStartDate());
+           loginResponseDto.setEndDate(memberSuspension.getEndDate());
+           loginResponseDto.setReason(memberSuspension.getReason());
+        }
+
+        return loginResponseDto;
     }
 
     public MemberEditPasswordDto memberToUpdateDto(String username) {
@@ -155,6 +173,29 @@ public class MemberService {
     public Page<PostListDto> getMyPostList(String username, PostCategory category, Pageable pageable) {
         Page<Post> postPage =  postRepository.findByCategoryAndAuthor(category, username, pageable);
         return postPage.map(post -> postListMapper.toDto(post));
+    }
+
+    @Transactional
+    public void updateMemberRole(MemberRoleDto dto) {
+        Member member = memberRepository.findById(dto.getId()).orElse(null);
+
+        if (member == null) {
+            throw new IllegalArgumentException("회원이 존재하지 않습니다.");
+        }
+
+        String nickname = dto.getNickname();
+
+        if (member.getRole() != MemberRole.MENTOR && dto.getMemberRole() == MemberRole.MENTOR) {
+            // 멘토로 변경 시 [멘토] 접두사 추가
+            if (!nickname.startsWith("[멘토] ")) {
+                dto.setNickname("[멘토] " + nickname);
+            }
+        } else if (dto.getMemberRole() == MemberRole.MEMBER) {
+            // 일반 회원으로 변경 시 [멘토] 접두사 제거
+            dto.setNickname(nickname.replace("[멘토] ", ""));
+        }
+
+        member.updateRole(dto);
     }
 
 

@@ -16,10 +16,13 @@
                     <div class="mb-3">
                         <label for="password" class="form-label">비밀번호</label>
                         <input type="password" class="form-control" id="password" th:field="*{password}" >
-                        <p id="passwordValid" class="text-danger"></p>
 <!--                        <span th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="text-danger"></span>-->
                     </div>
+
                     <p th:if="${loginFail}" class="text-danger" th:text="${loginFail}"></p>
+                    <p th:if="${suspended}" class="text-danger" th:text="${suspended}"></p>
+                    <p th:if="${endDate}" class="text-danger" th:text="${endDate}"></p>
+                    <p th:if="${reason}" class="text-danger" th:text="${reason}"></p>
                     <button type="button" class="btn btn-primary w-100" onclick="valid()">로그인</button>
                 </form>
             </div>

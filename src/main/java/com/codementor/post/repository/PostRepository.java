@@ -20,6 +20,9 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query("SELECT p FROM Post p WHERE p.category = :category AND p.isDeleted = 'N'")
     Page<Post> findByCategoryAndNotDeleted(@Param("category") PostCategory category, Pageable pageable);
 
+    @Query("SELECT p FROM Post p WHERE p.category = :category AND p.isDeleted = 'N'")
+    List<Post> findByCategoryAndNotDeleted(@Param("category") PostCategory category);
+
     Page<Post> findByCategory(PostCategory category, Pageable pageable);
 
     @Query("SELECT p FROM Post p WHERE p.category = :category AND p.author.username = :author")

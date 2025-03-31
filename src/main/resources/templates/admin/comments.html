@@ -31,7 +31,7 @@
                         <td th:text="${comment.id}"></td>
                         <td th:text="${comment.author}"></td>
                         <td>
-                            <a th:href="@{/post/{id}(id=${comment.postDetail.id})}">
+                            <a th:href="@{/post/{category}/{id}(category=${comment.postDetail.category}, id=${comment.postDetail.id})}">
                                 <p th:text="${comment.content}" class="text-black"></p>
                                 <p th:text="${#temporals.format(comment.createdAt, 'yyyy-MM-dd hh:mm a')}"
                                    class="text-muted small"></p>
@@ -61,11 +61,11 @@
         <div th:if="${comments.totalPages > 0}" class="pagination justify-content-center">
             <ul class="pagination">
                 <li class="page-item">
-                    <a th:href="@{/admin/comments/(page=0, size=10)}"
+                    <a th:href="@{/admin/comments(page=0, size=10)}"
                        th:class="${comments.isFirst()} ? 'disabled page-link' : 'page-link' ">처음</a>
                 </li>
                 <li class="page-item">
-                    <a th:href="@{/admin/comments/(page=${comments.number - 1} , size=10)}"
+                    <a th:href="@{/admin/comments(page=${comments.number - 1}, size=10)}"
                        th:class="${comments.isFirst()} ? 'disabled page-link' : 'page-link' ">이전</a>
                 </li>
 

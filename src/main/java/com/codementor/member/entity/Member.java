@@ -4,6 +4,7 @@ import com.codementor.admin.entity.MemberSuspension;
 import com.codementor.member.dto.MemberEditNicknameDto;
 import com.codementor.member.dto.MemberEditPasswordDto;
 import com.codementor.member.dto.MemberEmailUpdateDto;
+import com.codementor.member.dto.MemberRoleDto;
 import com.codementor.member.enums.MemberRole;
 import com.codementor.member.enums.MemberStatus;
 import jakarta.persistence.*;
@@ -63,10 +64,17 @@ public class Member {
     public void updateEmail(MemberEmailUpdateDto dto) {
         this.email = dto.getEmail();
     }
+
     public void updatePassword(MemberEditPasswordDto dto) {
         this.password = dto.getPassword();
     }
 
-    public void updateStatus(MemberStatus status) {}
+    public void updateStatus(MemberStatus status) {this.status = status;}
+
+    public void updateRole(MemberRoleDto dto) {
+        this.nickname = dto.getNickname();
+        this.role = dto.getMemberRole();
+    }
+
 
 }

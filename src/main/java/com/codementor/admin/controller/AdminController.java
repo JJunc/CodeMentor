@@ -6,22 +6,33 @@ import com.codementor.admin.service.AdminService;
 import com.codementor.comment.dto.CommentDto;
 import com.codementor.comment.service.CommentService;
 import com.codementor.member.dto.LoginResponseDto;
+import com.codementor.member.dto.MemberRoleDto;
+import com.codementor.member.enums.MemberStatus;
 import com.codementor.member.enums.SessionConst;
 import com.codementor.member.service.MemberService;
+import com.codementor.post.dto.PostListDto;
 import com.codementor.post.dto.PostUpdateDto;
 import com.codementor.post.enums.PostCategory;
 import com.codementor.post.service.PostService;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @Controller
 @RequestMapping("/admin")
@@ -54,9 +65,18 @@ public class AdminController {
         return "/admin/members";
     }
 
+    @PostMapping("/member/role")
+    public String updateMemberRole(HttpSession session,
+                                   @ModelAttribute MemberRoleDto dto,
+                                   @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        memberService.updateMemberRole(dto);
+
+        return "redirect:/admin/members";
+    }
+
     @PostMapping("/members/suspension")
     public String suspenseMember(HttpSession session,
-                                   @ModelAttribute MemberSuspensionDto dto) {
+                                 @ModelAttribute MemberSuspensionDto dto, BindingResult bindingResult, Model model) {
         adminService.suspenseMember(dto);
 
         return "redirect:/admin/members";
@@ -75,7 +95,6 @@ public class AdminController {
         model.addAttribute("posts", postService.getPostList(category, pageable));
         return "/admin/posts";
     }
-
 
     @PostMapping("/post/delete")
     public String deletePost(@ModelAttribute PostUpdateDto dto, RedirectAttributes redirectAttributes) {

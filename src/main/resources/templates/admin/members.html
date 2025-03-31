@@ -4,15 +4,16 @@
 <th:block layout:fragment="content">
     <div class="container-xxl">
         <h2>회원 목록</h2>
-        <table class="table table-striped">
+        <table id="memberTable" class="table">
             <thead>
             <tr>
                 <th>번호</th>
                 <th>아이디</th>
-                <th>이름</th>
+                <th>닉네임</th>
                 <th>이메일</th>
                 <th>가입일</th>
                 <th>상태</th>
+                <th>권한</th>
                 <th>관리</th>
             </tr>
             </thead>
@@ -30,34 +31,53 @@
                     <span th:case="'BANNED'">영구정지</span>
                 </td>
 
-                <!-- 정지 버튼과 드롭다운 리스트 및 기간 설정 칸 -->
+                <td id="role" th:switch="${member.role.name()}">
+                    <span th:case="'MEMBER'">일반회원</span>
+                    <span th:case="'MENTOR'">멘토</span>
+                </td>
+
                 <td id="suspensionTable">
                     <button class="btn btn-danger btn-sm mb-3"
-                            th:href="@{/admin/members/suspension/{id}(id=${member.id})}"
+                            th:onclick="'showRoleOptions(' + ${member.id} + ')'">권한설정
+                    </button>
+
+                    <form id="roleForm" th:action="@{/admin/member/role}" method="post" class="mb-3">
+                        <input type="hidden" name="id" th:value="${member.id}">
+                        <input type="hidden" name="nickname" th:value="${member.nickname}">
+                        <div th:id="'roleDropdown-' + ${member.id}" style="display:none;">
+                            <select th:id="'roleSelect-' + ${member.id}" name="memberRole" class="form-control mb-3"
+                                    th:onchange="'toggleRole(' + ${member.id} + ')'">
+                                <option th:value="MEMBER" th:selected="${member.status == 'MEMBER'}">일반회원</option>
+                                <option th:value="MENTOR" th:selected="${member.status == 'MENTOR'}">멘토</option>
+                            </select>
+
+                            <button type="submit" class="btn btn-sm btn-primary">저장</button>
+                            <button type="button" class="btn btn-sm btn-secondary"
+                                    th:onclick="'cancelRole('+${member.id}+')'">취소
+                            </button>
+                        </div>
+                    </form>
+
+                    <button class="btn btn-danger btn-sm mb-3"
                             th:onclick="'showSuspensionOptions(' + ${member.id} + ')'">정지
                     </button>
 
-                    <!-- 드롭다운 상태 선택 (활동, 정지, 영구정지) -->
                     <form id="suspensionForm" th:action="@{/admin/members/suspension}" method="post">
                         <input type="hidden" name="id" th:value="${member.id}">
                         <div th:id="'statusDropdown-' + ${member.id}" style="display:none;">
                             <select th:id="'statusSelect-' + ${member.id}" name="memberStatus" class="form-control mb-3"
-                                    th:onchange="
-                        'toggleSuspensionPeriod(' + ${member.id} + ')'">
+                                    th:onchange="'toggleSuspensionPeriod(' + ${member.id} + ')'">
                                 <option th:value="ACTIVE" th:selected="${member.status == 'ACTIVE'}">활동</option>
                                 <option th:value="SUSPENDED" th:selected="${member.status == 'SUSPENDED'}">정지</option>
                                 <option th:value="BANNED" th:selected="${member.status == 'BANNED'}">영구정지</option>
                             </select>
-
-                            <!-- 기간 설정 (정지 선택 시 보이도록) -->
-                            <!-- 정지 기간을 선택할 수 있는 입력란 -->
-                            <div th:id="'suspensionPeriodSection-' + ${member.id}" style="display: none;">
+                            <div th:id="'reasonSection-' + ${member.id}">
                                 <label for="reason">정지 사유</label>
                                 <input type="text" name="reason" id="reason" class="form-control mb-2">
-                                <label th:for="'suspensionPeriod-' + ${member.id}">정지 기간:</label>
-                                <!-- 날짜와 시간 선택을 위한 input -->
-
+                            </div>
+                            <div th:id="'suspensionPeriodSection-' + ${member.id}" style="display: none;">
                                 <input type="hidden" name="memberId" th:value="${member.id}">
+                                <label th:for="'suspensionPeriod-' + ${member.id}">정지 기간:</label>
                                 <input type="datetime-local" class="form-control mb-1"
                                        th:id="'suspensionPeriod-' + ${member.id}"
                                        name="endDate">
@@ -73,36 +93,26 @@
             </tbody>
         </table>
 
-        <div th:if="${members.totalPages > 0}" class="pagination justify-content-center">
-            <ul class="pagination">
-                <li class="page-item">
-                    <a th:href="@{/members(page=0, size=10)}"
-                       th:class="${members.isFirst()} ? 'disabled page-link' : 'page-link' ">처음</a>
-                </li>
-                <li class="page-item">
-                    <a th:href="@{/members(page=${members.number - 1} , size=10)}"
-                       th:class="${members.isFirst()} ? 'disabled page-link' : 'page-link' ">이전</a>
-                </li>
-
-                <!-- 페이지 번호 링크 -->
-                <li th:each="i : ${#numbers.sequence(0, members.totalPages - 1)}" class="page-item">
-                    <a th:href="@{/members(page=${i}, size=10)}"
-                       th:text="${i + 1}" class="page-link"
-                       th:classappend="${members.number == i} ? ' active' : ''"></a>
-                </li>
-
-                <li class="page-item">
-                    <a th:href="@{/members(page=${members.number + 1}, size=10)}"
-                       th:class="${members.isLast()} ? 'disabled page-link' : 'page-link' ">다음</a>
-                </li>
-                <li class="page-item">
-                    <a th:href="@{/members(page=${members.totalPages - 1}, size=10)}"
-                       th:class="${members.isLast()} ? 'disabled page-link' : 'page-link' ">마지막</a>
-                </li>
-            </ul>
-        </div>
     </div>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script>
+        function showRoleOptions(memberId) {
+            const dropdown = document.getElementById(`roleDropdown-` + memberId);
+            const statusSelect = document.getElementById(`roleSelect-` + memberId);
+
+            // 상태 드롭다운을 표시
+            dropdown.style.display = 'block';
+
+            // 일반회원 상태가 기본값으로 선택되도록 설정
+            statusSelect.value = 'MEMBER';
+
+        }
+
+        function cancelRole(memberId) {
+            const dropdown = document.getElementById(`statusDropdown-` + memberId);
+            dropdown.style.display = 'none';
+        }
+
 
         // 정지 버튼 클릭 시 드롭다운 리스트와 기간 입력칸을 표시하는 함수
         function showSuspensionOptions(memberId) {
@@ -124,13 +134,17 @@
         function toggleSuspensionPeriod(memberId) {
             const status = document.getElementById(`statusSelect-${memberId}`).value;
             const suspensionPeriodSection = document.getElementById(`suspensionPeriodSection-${memberId}`);
+            const reasonSection = document.getElementById(`reasonSection-${memberId}`);
 
             if (status === 'SUSPENDED') {
-                // 정지 상태일 때만 기간 설정 칸을 보이도록
                 suspensionPeriodSection.style.display = 'block';
-            } else {
-                // 정지가 아니면 기간 설정 칸을 숨김
+                reasonSection.style.display = 'block';
+            } else if (status === 'BANNED') {
                 suspensionPeriodSection.style.display = 'none';
+                reasonSection.style.display = 'block';
+            } else {
+                suspensionPeriodSection.style.display = 'none';
+                reasonSection.style.display = 'none';
             }
         }
 
@@ -138,6 +152,26 @@
             const dropdown = document.getElementById(`statusDropdown-` + memberId);
             dropdown.style.display = 'none';
         }
+
+        function validateForm(event) {
+            // reason 필드 값 가져오기
+            const reasonField = document.getElementById("reason");
+            const reasonValue = reasonField.value.trim(); // 공백 제거
+
+            // reason 필드가 비어있거나 공백만 있을 경우
+            if (!reasonValue) {
+                event.preventDefault();  // 폼 제출 막기
+                alert("정지 사유를 입력해주세요.");  // 오류 메시지 표시
+                reasonField.focus();  // reason 필드로 포커스 이동
+                return false;  // 함수 종료
+            }
+
+            // 모든 검증 통과 시 폼 제출
+            return true;
+        }
+
+        // 폼 제출 이벤트에 유효성 검사 추가
+        document.querySelector("form").addEventListener("submit", validateForm);
 
     </script>
 </th:block>

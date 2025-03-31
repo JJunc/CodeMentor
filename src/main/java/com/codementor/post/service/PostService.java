@@ -53,6 +53,10 @@ public class PostService {
                 .map(postListMapper::toDto);
     }
 
+    public List<PostListDto> getPostList(PostCategory category) {
+        return postRepository.findByCategoryAndNotDeleted(category).stream().map(postListMapper::toDto).collect(Collectors.toList());
+    }
+
     public void createPost(PostCreateDto dto) {
         Optional<Member> findMember = memberRepository.findByUsername(dto.getAuthor());
 

@@ -59,7 +59,7 @@ public class PostController {
 
         model.addAttribute("category", category);
         model.addAttribute("posts", postService.getPostList(category, pageable));
-        return "post/posts";
+        return "/post/posts";
     }
 
     @GetMapping("/create")
@@ -80,38 +80,39 @@ public class PostController {
         return "redirect:/post/free";
     }
 
-    @GetMapping("/{id}")
-    public String post(@PathVariable Long id, Model model) {
-        PostDetailDto post = postService.getPost(id);
-
-        log.info("조회되는 게시판 번호 = {}", id);
-        log.info("조회된 게시판의 번호 필드= {}", post.getId());
-
-        if(post == null) {
-            model.addAttribute("post", id);
-            return "/post/posts";
-        }
-
-        // 조회수 증가
-        postService.updateViews(post);
-
-        log.info("댓글 유무 = {}" , post.getComments() == null ? "null" : post.getComments().isEmpty());
-
-        model.addAttribute("post", post);
-        model.addAttribute("commentDto", new CommentDto());
-
-        return "/post/post-detail";
-    }
+//    @GetMapping("/{id}")
+//    public String postDetail(@PathVariable Long id,
+//                       Model model) {
+//        PostDetailDto post = postService.getPost(id);
+//
+//        log.info("조회되는 게시판 번호 = {}", id);
+//        log.info("조회된 게시판의 번호 필드= {}", post.getId());
+//
+//        if (post == null) {
+//            model.addAttribute("post", id);
+//            return "/post/posts";
+//        }
+//
+//        // 조회수 증가
+//        postService.updateViews(post);
+//
+//        log.info("댓글 유무 = {}", post.getComments() == null ? "null" : post.getComments().isEmpty());
+//
+//        model.addAttribute("post", post);
+//        model.addAttribute("commentDto", new CommentDto());
+//
+//        return "/post/post-detail";
+//    }
 
 
     @GetMapping("/{category}/{id}")
-    public String post(@PathVariable Long id, @PathVariable PostCategory category, Model model) {
+    public String post(@PathVariable PostCategory category, @PathVariable Long id, Model model) {
         PostDetailDto post = postService.getPost(id);
 
         log.info("조회되는 게시판 번호 = {}", id);
         log.info("조회된 게시판의 번호 필드= {}", post.getId());
 
-        if(post == null) {
+        if (post == null) {
             model.addAttribute("post", id);
             return "/post/posts";
         }
@@ -119,7 +120,7 @@ public class PostController {
         // 조회수 증가
         postService.updateViews(post);
 
-        log.info("댓글 유무 = {}" , post.getComments() == null ? "null" : post.getComments().isEmpty());
+        log.info("댓글 유무 = {}", post.getComments() == null ? "null" : post.getComments().isEmpty());
 
         model.addAttribute("post", post);
         model.addAttribute("commentDto", new CommentDto());
