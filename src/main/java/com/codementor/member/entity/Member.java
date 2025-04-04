@@ -1,5 +1,6 @@
 package com.codementor.member.entity;
 
+import com.codementor.admin.dto.MemberUpdateDto;
 import com.codementor.admin.entity.MemberSuspension;
 import com.codementor.member.dto.MemberEditNicknameDto;
 import com.codementor.member.dto.MemberEditPasswordDto;

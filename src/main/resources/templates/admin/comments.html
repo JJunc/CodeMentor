@@ -4,7 +4,17 @@
 <th:block layout:fragment="content">
     <div class="container-xxl">
 
-        <!-- 게시글 목록 -->
+        <form th:action="@{/admin/comment/search}" method="get">
+            <label for="keyword" class="fw-bold">검색어:</label>
+            <input type="text" name="keyword" id="keyword" required>
+            <select name="searchType" id="search">
+                <option value="AUTHOR">작성자</option>
+                <option value="TITLE">게시글 제목</option>
+                <option value="CONTENT">내용</option>
+            </select>
+            <button type="submit" class="btn btn-sm btn-primary">검색</button>
+        </form>
+
         <div class="mt-4">
             <table class="table table-hover">
                 <thead class="table-light">
@@ -87,5 +97,8 @@
             </ul>
         </div>
     </div>
+    <script th:if="${noResults}">
+        alert("검색 결과가 없습니다.");
+    </script>
 </th:block>
 </html>

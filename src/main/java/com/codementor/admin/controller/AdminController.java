@@ -1,38 +1,31 @@
 package com.codementor.admin.controller;
 
 import com.codementor.admin.dto.MemberSuspensionDto;
-import com.codementor.admin.entity.MemberSuspension;
 import com.codementor.admin.service.AdminService;
 import com.codementor.comment.dto.CommentDto;
+import com.codementor.comment.dto.CommentSearchDto;
 import com.codementor.comment.service.CommentService;
 import com.codementor.member.dto.LoginResponseDto;
 import com.codementor.member.dto.MemberRoleDto;
-import com.codementor.member.enums.MemberStatus;
 import com.codementor.member.enums.SessionConst;
 import com.codementor.member.service.MemberService;
 import com.codementor.post.dto.PostListDto;
+import com.codementor.post.dto.PostSearchDto;
 import com.codementor.post.dto.PostUpdateDto;
 import com.codementor.post.enums.PostCategory;
 import com.codementor.post.service.PostService;
 import jakarta.servlet.http.HttpSession;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 
 @Controller
 @RequestMapping("/admin")
@@ -65,6 +58,7 @@ public class AdminController {
         return "/admin/members";
     }
 
+
     @PostMapping("/member/role")
     public String updateMemberRole(HttpSession session,
                                    @ModelAttribute MemberRoleDto dto,
@@ -82,6 +76,7 @@ public class AdminController {
         return "redirect:/admin/members";
     }
 
+
     @GetMapping("/post/{category}")
     public String posts(@PathVariable PostCategory category
             , @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
@@ -93,6 +88,25 @@ public class AdminController {
 
         model.addAttribute("category", category);
         model.addAttribute("posts", postService.getPostList(category, pageable));
+        return "/admin/posts";
+    }
+
+    @GetMapping("/post/search")
+    public String search(@ModelAttribute PostSearchDto searchDto
+            , @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            , Model model, RedirectAttributes redirectAttributes) {
+        // 회원 검색 결과
+        Page<PostListDto> result = postService.searchPosts(searchDto, pageable);
+
+        log.info("검색 카테고리 = {}", searchDto.getCategory());
+
+        if (result.isEmpty()) {
+            model.addAttribute("noResults", true); // 검색 결과 없음 플래그 추가
+            return  "redirect:/admin/post/" + searchDto.getCategory(); // 다시 목록 페이지로 이동
+        }
+
+        model.addAttribute("category", searchDto.getCategory());
+        model.addAttribute("posts", result);
         return "/admin/posts";
     }
 
@@ -115,6 +129,22 @@ public class AdminController {
         Page<CommentDto> commentDtoList = commentService.getComments(pageable);
 
         model.addAttribute("comments", commentDtoList);
+
+        return "/admin/comments";
+    }
+
+    @GetMapping("/comment/search")
+    public String searchComment(@ModelAttribute CommentSearchDto dto, Model model,
+                                @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
+
+        Page<CommentDto> result = commentService.searchComments(dto, pageable);
+
+        if (result.isEmpty()) {
+            model.addAttribute("noResults", true); // 검색 결과 없음 플래그 추가
+            return  "redirect:/admin/comments"; // 다시 목록 페이지로 이동
+        }
+
+        model.addAttribute("comments", result);
 
         return "/admin/comments";
     }

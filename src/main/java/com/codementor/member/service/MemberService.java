@@ -1,15 +1,16 @@
 package com.codementor.member.service;
 
+import com.codementor.member.dto.MemberSearchDto;
+import com.codementor.member.dto.mapper.MemberSearchMapper;
 import com.codementor.admin.entity.MemberSuspension;
 import com.codementor.admin.repository.MemberSuspensionRepository;
-import com.codementor.comment.dto.CommentDto;
-import com.codementor.comment.entity.Comment;
 import com.codementor.member.dto.*;
 import com.codementor.member.dto.mapper.*;
 import com.codementor.member.entity.Member;
 import com.codementor.member.enums.CheckPassword;
 import com.codementor.member.enums.MemberRole;
 import com.codementor.member.enums.MemberStatus;
+import com.codementor.member.exceptions.MemberNotFoundException;
 import com.codementor.member.repository.MemberRepository;
 import com.codementor.post.dto.PostListDto;
 import com.codementor.post.dto.mapper.PostListMapper;
@@ -26,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -40,6 +40,7 @@ public class MemberService {
     private final LoginMapper loginMapper;
     private final signUpMapper signUpMapper;
     private final MemberListMapper memberListMapper;
+    private final MemberSearchMapper memberSearchMapper;
     private final MemberUpdateMapper memberUpdateMapper;
     private final MyPageMapper myPageMapper;
     private final PasswordEncoder passwordEncoder;
@@ -48,6 +49,29 @@ public class MemberService {
     public Page<MemberListDto> getAllMembers(Pageable pageable) {
         return memberRepository.findAll(pageable).map(m -> memberListMapper.toDto(m));
     }
+
+    public Page<MemberListDto> searchMembers(MemberSearchDto memberSearchDto, Pageable pageable) {
+        // SearchType에 따라 조건을 다르게 처리
+        Page<Member> members;
+        log.info("검색조건 {}", memberSearchDto.getSearchType());
+        switch (memberSearchDto.getSearchType()) {
+            case EMAIL:
+                members = memberRepository.findByEmail(memberSearchDto.getKeyword(), pageable);
+                break;
+            case USERNAME:
+                members = memberRepository.findByUsername(memberSearchDto.getKeyword(), pageable);
+                break;
+            case NICKNAME:
+                members = memberRepository.findByNickname(memberSearchDto.getKeyword(), pageable);
+                break;
+            default:
+                members = memberRepository.findAll(pageable);  // 기본적으로 전체 검색
+                break;
+        }
+
+        return members.map(memberListMapper::toDto);  // 반환 시 DTO로 변환
+    }
+
 
     public void signUp(SignUpRequestDto dto) {
 
@@ -78,27 +102,31 @@ public class MemberService {
             checkPasswords.add(CheckPassword.CURRENT_PASSWORD_MISMATCH);
         }
 
-        if(passwordEncoder.matches(dto.getPassword(), member.getPassword())) {
-           checkPasswords.add(CheckPassword.SAME_AS_OLD);
+        if (passwordEncoder.matches(dto.getPassword(), member.getPassword())) {
+            checkPasswords.add(CheckPassword.SAME_AS_OLD);
         }
 
         return checkPasswords;
     }
 
     public LoginResponseDto login(LoginRequestDto dto) {
+        Member member = memberRepository.findByUsername(dto.getUsername())
+                .orElse(null);
 
-        Member member = memberRepository.findByUsername(dto.getUsername()).orElse(null);
-        log.info("로그인 요청 회원 번호: {}", member.getId());
-        LoginResponseDto loginResponseDto = loginMapper.toDto(member);
-        if(passwordEncoder.matches(dto.getPassword(), member.getPassword())){
-            return null;
+        if (!passwordEncoder.matches(dto.getPassword(), member.getPassword())) {
+            throw new IllegalStateException("아이디 또는 비밀번호가 맞지 않습니다.");
         }
 
-        if(member.getStatus() != MemberStatus.ACTIVE){
-           MemberSuspension memberSuspension = memberSuspensionRepository.findByMemberId(member.getId()).orElse(null);
-           loginResponseDto.setStartDate(memberSuspension.getStartDate());
-           loginResponseDto.setEndDate(memberSuspension.getEndDate());
-           loginResponseDto.setReason(memberSuspension.getReason());
+        LoginResponseDto loginResponseDto = new LoginResponseDto();
+        loginResponseDto.setUsername(member.getUsername());
+        loginResponseDto.setStatus(member.getStatus());
+
+        if (member.getStatus() != MemberStatus.ACTIVE) {
+            MemberSuspension memberSuspension = memberSuspensionRepository.findByMemberId(member.getId())
+                    .orElseThrow(() -> new IllegalStateException("정지 정보가 없습니다."));
+            loginResponseDto.setStartDate(memberSuspension.getStartDate());
+            loginResponseDto.setEndDate(memberSuspension.getEndDate());
+            loginResponseDto.setReason(memberSuspension.getReason());
         }
 
         return loginResponseDto;
@@ -117,7 +145,7 @@ public class MemberService {
         Member member = memberRepository.findByUsername(username).orElse(null);
         log.info("회원 존재 여부 = {}", member.toString());
 
-        if(member.getNickname().equals(dto.getNickname())) {
+        if (member.getNickname().equals(dto.getNickname())) {
             return false;
         }
 
@@ -171,7 +199,7 @@ public class MemberService {
     }
 
     public Page<PostListDto> getMyPostList(String username, PostCategory category, Pageable pageable) {
-        Page<Post> postPage =  postRepository.findByCategoryAndAuthor(category, username, pageable);
+        Page<Post> postPage = postRepository.findByCategoryAndAuthor(category, username, pageable);
         return postPage.map(post -> postListMapper.toDto(post));
     }
 

@@ -4,6 +4,27 @@
 <th:block layout:fragment="content">
     <div class="container-xxl">
         <h2>회원 목록</h2>
+        <form th:action="@{/member/search}" method="get">
+            <label for="keyword" class="fw-bold">검색어:</label>
+            <input type="text" name="keyword" id="keyword" required>
+
+            <label for="search" class="fw-bold">검색 기준:</label>
+            <select name="searchType" id="search">
+                <option value="EMAIL">이메일</option>
+                <option value="USERNAME">아이디</option>
+                <option value="NICKNAME">닉네임</option>
+                <option value="CREATED_AT">가입날짜</option>
+            </select>
+
+            <label for="searchStatus" class="fw-bold">상태:</label>
+            <select name="searchStatus" id="searchStatus">
+                <option value="ACTIVE">활동</option>
+                <option value="SUSPENDED">정지</option>
+                <option value="BANNED">영구정지</option>
+            </select>
+            <button type="submit" class="btn btn-sm btn-primary">검색</button>
+        </form>
+
         <table id="memberTable" class="table">
             <thead>
             <tr>
@@ -92,9 +113,39 @@
             </tr>
             </tbody>
         </table>
+        <div th:if="${members.totalPages > 0}" class="pagination justify-content-center">
+            <ul class="pagination">
+                <li class="page-item">
+                    <a th:href="@{/admin/members(page=0, size=10)}"
+                       th:class="${members.isFirst()} ? 'disabled page-link' : 'page-link' ">처음</a>
+                </li>
+                <li class="page-item">
+                    <a th:href="@{/admin/members(page=${members.number - 1} , size=10)}"
+                       th:class="${members.isFirst()} ? 'disabled page-link' : 'page-link' ">이전</a>
+                </li>
 
+                <!-- 페이지 번호 링크 -->
+                <li th:each="i : ${#numbers.sequence(0, members.totalPages - 1)}" class="page-item">
+                    <a th:href="@{/admin/members(page=${i}, size=10)}"
+                       th:text="${i + 1}" class="page-link"
+                       th:classappend="${members.number == i} ? ' active' : ''"></a>
+                </li>
+
+                <li class="page-item">
+                    <a th:href="@{/admin/members( page=${members.number + 1}, size=10)}"
+                       th:class="${members.isLast()} ? 'disabled page-link' : 'page-link' ">다음</a>
+                </li>
+                <li class="page-item">
+                    <a th:href="@{/admin/members(page=${members.totalPages - 1}, size=10)}"
+                       th:class="${members.isLast()} ? 'disabled page-link' : 'page-link' ">마지막</a>
+                </li>
+            </ul>
+        </div>
     </div>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script th:if="${noResults}">
+        alert('검색 조건에 맞는 회원이 없습니다.');
+    </script>
     <script>
         function showRoleOptions(memberId) {
             const dropdown = document.getElementById(`roleDropdown-` + memberId);
@@ -109,7 +160,7 @@
         }
 
         function cancelRole(memberId) {
-            const dropdown = document.getElementById(`statusDropdown-` + memberId);
+            const dropdown = document.getElementById(`roleDropdown-` + memberId);
             dropdown.style.display = 'none';
         }
 
@@ -171,7 +222,7 @@
         }
 
         // 폼 제출 이벤트에 유효성 검사 추가
-        document.querySelector("form").addEventListener("submit", validateForm);
+        document.getElementById("suspensionForm").addEventListener("submit", validateForm);
 
     </script>
 </th:block>

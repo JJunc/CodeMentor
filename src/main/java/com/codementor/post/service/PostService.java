@@ -1,5 +1,6 @@
 package com.codementor.post.service;
 
+
 import com.codementor.member.entity.Member;
 import com.codementor.member.repository.MemberRepository;
 import com.codementor.post.dto.*;
@@ -55,6 +56,37 @@ public class PostService {
 
     public List<PostListDto> getPostList(PostCategory category) {
         return postRepository.findByCategoryAndNotDeleted(category).stream().map(postListMapper::toDto).collect(Collectors.toList());
+    }
+
+    public Page<PostListDto> searchPosts(PostSearchDto dto, Pageable pageable) {
+        Page<Post> posts;
+        log.info("검색조건: {}, 카테고리: {}", dto.getSearchType(), dto.getCategory());
+
+        // 검색 조건이 없는 경우 전체 조회
+        if (dto.getSearchType() == null || dto.getKeyword() == null || dto.getKeyword().isEmpty()) {
+            posts = postRepository.findByCategory(dto.getCategory(), pageable);
+        } else {
+            // SearchType에 따라 조건을 다르게 처리
+            switch (dto.getSearchType()) {
+                case TITLE:
+                    posts = postRepository.findByTitleAndCategory(dto.getKeyword(), dto.getCategory(), pageable);
+                    break;
+                case CONTENT:
+                    posts = postRepository.findByContentAndCategory(dto.getKeyword(), dto.getCategory(), pageable);
+                    break;
+                case TITLE_AND_CONTENT:
+                    posts = postRepository.findByTitleOrContentAndCategory(dto.getKeyword(), dto.getKeyword(), dto.getCategory(), pageable);
+                    break;
+                case AUTHOR:
+                    posts = postRepository.findByAuthorAndCategory(dto.getKeyword(), dto.getCategory(), pageable);
+                    break;
+                default:
+                    posts = postRepository.findAll(pageable);  // 기본적으로 전체 검색
+                    break;
+            }
+        }
+
+        return posts.map(postListMapper::toDto);
     }
 
     public void createPost(PostCreateDto dto) {

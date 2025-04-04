@@ -3,16 +3,16 @@ package com.codementor.post.controller;
 import com.codementor.comment.dto.CommentDto;
 import com.codementor.comment.service.CommentService;
 import com.codementor.member.dto.LoginResponseDto;
+import com.codementor.member.dto.MemberListDto;
 import com.codementor.member.enums.SessionConst;
-import com.codementor.post.dto.PostCreateDto;
-import com.codementor.post.dto.PostDetailDto;
-import com.codementor.post.dto.PostUpdateDto;
+import com.codementor.post.dto.*;
 import com.codementor.post.enums.PostCategory;
 import com.codementor.post.service.PostService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
@@ -61,6 +61,7 @@ public class PostController {
         model.addAttribute("posts", postService.getPostList(category, pageable));
         return "/post/posts";
     }
+
 
     @GetMapping("/create")
     public String createPostForm(Model model) {

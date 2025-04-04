@@ -22,16 +22,32 @@ public class CommentController {
 
     @GetMapping("/{postId}")
     public ResponseEntity getCommentList(@PathVariable Long postId,
-                                         @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+                                         @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         Page<CommentDto> commentDtoList = commentService.getComments(postId, pageable);
+        log.info("총 댓글 갯수 = {}", commentDtoList.getSize());
         return new ResponseEntity<>(commentDtoList, HttpStatus.OK);
     }
 
     @PostMapping("/save")
-    public ResponseEntity createComment(@RequestBody CommentDto commentDto,
+    public ResponseEntity saveComment(@RequestBody CommentDto commentDto,
                                      @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         log.info("댓글이 작성될 게시판 번호 = {}", commentDto.getPostId());
         Long saveResult = commentService.create(commentDto);
+        if (saveResult != null) {
+            Page<CommentDto> commentDtoList = commentService.getComments(commentDto.getPostId(), pageable);
+            return new ResponseEntity<>(commentDtoList, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("해당 게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PostMapping("/reply/save")
+    public ResponseEntity replyComment(
+                                       @RequestBody CommentDto commentDto,
+                                       @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        log.info("답글이 작성될 게시판 번호 = {}", commentDto.getPostId());
+        Long saveResult = commentService.saveReply(commentDto);
         if (saveResult != null) {
             Page<CommentDto> commentDtoList = commentService.getComments(commentDto.getPostId(), pageable);
             return new ResponseEntity<>(commentDtoList, HttpStatus.OK);

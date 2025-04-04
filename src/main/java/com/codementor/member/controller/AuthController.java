@@ -85,7 +85,7 @@ public class AuthController {
     }
 
     @PostMapping("/signUp")
-    public String signUp(@Valid @ModelAttribute("signUpDto") SignUpRequestDto dto, BindingResult bindingResult, Model model, RedirectAttributes redirectAttributes) {
+    public String signUp(@Valid @ModelAttribute("signUpDto") SignUpRequestDto dto, BindingResult bindingResult, Model model,RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("signUpDto", dto);
@@ -104,7 +104,8 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String login(@Valid @ModelAttribute("loginDto") LoginRequestDto dto, BindingResult bindingResult, Model model, HttpServletRequest request) {
+    public String login(@Valid @ModelAttribute("loginDto") LoginRequestDto dto,
+                        BindingResult bindingResult, Model model, HttpServletRequest request) {
 
         LoginResponseDto loginMember = memberService.login(dto);
 
@@ -119,20 +120,16 @@ public class AuthController {
             return "/member/login-form";
         }
 
-        if (loginMember.getStatus() == MemberStatus.SUSPENDED) {
+        if(loginMember.getStatus() == MemberStatus.SUSPENDED){
             model.addAttribute("loginDto", dto);
             model.addAttribute("suspended", "정지된 회원 입니다.");
-            model.addAttribute("endDate", "정지 기간: "
-                    + loginMember.getStartDate() + " ~ " + loginMember.getEndDate());
-            model.addAttribute("reason","정지사유: " + loginMember.getReason());
-            return "/member/login-form";
+            model.addAttribute("endDate", "정지 기간: " + loginMember.getStartDate() + " ~ " + loginMember.getEndDate() );
         }
 
-        if (loginMember.getStatus() == MemberStatus.BANNED) {
+        if(loginMember.getStatus() == MemberStatus.BANNED){
             model.addAttribute("loginDto", dto);
             model.addAttribute("suspended", "영구정지된 회원 입니다.");
-            model.addAttribute("reason", "정지사유: " + loginMember.getReason());
-            return "/member/login-form";
+            model.addAttribute("endDate", "정지 기간: " + loginMember.getStartDate() + " ~ " + loginMember.getEndDate() );
         }
 
         //로그인 성공 처리

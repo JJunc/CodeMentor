@@ -14,7 +14,9 @@
           <factory-entry name="CodeMentor.main" value="4ccb029d-2a4f-4657-885a-fb1e0767c4a4" />
           <factory-entry name="entityManagerFactory" />
         </datasource-mapping>
-        <naming-strategy-map />
+        <naming-strategy-map>
+          <unit-entry name="entityManagerFactory" />
+        </naming-strategy-map>
       </configuration>
     </facet>
   </component>
