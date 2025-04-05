@@ -8,13 +8,13 @@
                 <div class="row">
                     <h2 class="text-center mb-4" th:text="${post.title}"></h2>
                 </div>
-                <div class="row justify-content-center border-bottom">
+                <div class="row justify-content-center border-bottom mb-4">
                     <!-- 게시글 상세 -->
                     <div class="col text-muted mb-3">
                         <span th:text="|작성자: ${post.author}|"></span> |
-                        <span th:text="|작성일: ${#temporals.format(post.createdAt, 'yyyy-MM-dd')}|"></span>
+                        <span th:text="|작성일: ${#temporals.format(post.createdAt, 'yyyy-MM-dd hh:mm a')}|"></span>
                         <span th:if="${post.updatedAt != null}"
-                              th:text="|수정일: ${#temporals.format(post.updatedAt, 'yyyy-MM-dd')}|"></span>
+                              th:text="|수정일: ${#temporals.format(post.updatedAt, 'yyyy-MM-dd hh:mm a')}|"></span>
                     </div>
                     <div class="col text-muted mb-3 text-end">
                         <span th:text="|조회수: ${post.views}|"></span>
@@ -23,7 +23,8 @@
                 <div class="row justify-content-center">
                     <!-- 게시글 내용 -->
                     <div class="mb-4 justify-content-center">
-                        <p th:text="${post.content}">게시글 본문 내용...</p>
+                        <div th:utext="${post.content}">게시글 본문 내용...</div>
+<!--                        <img src="/images/d8e90073-dd75-4680-ae7f-bebee86c5355_enum.png">-->
                     </div>
                 </div>
                 <div class="row justify-content-center">
@@ -37,7 +38,6 @@
                 </div>
             </div>
         </div>
-
 
         <div class="card">
             <div class="card-header">
@@ -99,7 +99,7 @@
 
         let currentPage = 0;
         let page = 0;
-        const pageSize = 10;
+
 
         document.addEventListener("DOMContentLoaded", function () {
             reloadComment(page); // 페이지가 로드될 때 댓글 자동 로드
@@ -129,9 +129,9 @@
         function reloadComment(page) {
             console.log("현재 페이지:", page);  // 로그 출력
 
-            axios.get(`/comment/${postId}?page=${page}&size=${pageSize}`)
+            axios.get(`/comment/${postId}?page=${page}`)
                 .then(response => {
-                    console.log("서버 응답:", response.data);
+                    console.log("서버 응답:", response.data.content);
                     updateCommentList(response.data.content);
                     updatePagination(response.data);
 
@@ -165,64 +165,69 @@
             }
 
             comments.forEach(comment => {
+                if (comment.depth !== 0) return; // 부모 댓글만 추가 (depth 0)
+
                 const formattedDate = formatDate(comment.createdAt);
 
                 // 로그인한 사용자가 댓글 작성자인 경우에만 버튼 추가
                 const actionButtons = loginMember === comment.author
                     ? `
-            <div class="text-end">
-                <button type="button" class="btn btn-primary btn-sm" onclick="showEditForm('${comment.id}', '${comment.content}')">수정</button>
-                <button type="button" class="btn btn-danger btn-sm" onclick="deleteComment(${comment.id}, ${comment.postId})">삭제</button>
-            </div>`
-                    : "";
+        <div class="text-end">
+            <button type="button" class="btn btn-primary btn-sm" onclick="showEditForm('${comment.id}', '${comment.content}')">수정</button>
+            <button type="button" class="btn btn-danger btn-sm" onclick="deleteComment(${comment.id}, ${comment.postId})">삭제</button>
+        </div>` : "";
+
                 const replyButton = loginMember === comment.author
-                    ?
-                    `
-                    <div>
-                            <button type="button" class="btn btn-primary" onClick="showReplyForm(${comment.id})">답글</button>
-                    </div>
-                    `
-                    : "";
+                    ? `
+        <div>
+            <button type="button" class="btn btn-primary" onClick="showReplyForm(${comment.id})">답글</button>
+        </div>` : "";
 
-
+                // 댓글 HTML 생성
                 const commentHtml = `
-            <li class="comment-item" id="comment-${comment.id}">
-                <div class="media mb-3 p-3 border rounded shadow-sm">
-                    <div class="media-body">
-                        <div class="d-flex justify-content-between">
-                            <span class="mt-0 font-weight-bold text-primary h5">${comment.author}</span>
-                            <span>작성일: ${formattedDate}</span>
-                        </div>
-                        <p class="mb-1 text-dark" id="commentContent-${comment.id}">${comment.content}</p>
-                        <br>
-                        ${replyButton}
+        <li class="comment-item" id="comment-${comment.id}">
+            <div class="media mb-3 p-3 border rounded shadow-sm">
+                <div class="media-body">
+                    <div class="d-flex justify-content-between">
+                        <span class="mt-0 font-weight-bold text-primary h5">${comment.nickname}</span>
+                        <span>작성일: ${formattedDate}</span>
+                    </div>
+                    <p class="mb-1 text-dark" id="commentContent-${comment.id}">${comment.content}</p>
+                    <br>
+                    ${replyButton}
 
-                        <!-- 답글 폼 (기본적으로 숨김) -->
-                        <div id="replyForm-${comment.id}" class="reply-form mt-3 ms-4" style="display: none;">
-                            <form>
-                                <textarea class="form-control mb-2" id="replyContent-${comment.id}" rows="3" placeholder="답글을 입력하세요..."></textarea>
-                                <button type="button" class="btn btn-success btn-sm" onclick="createReply(${comment.id})">작성</button>
-                                <button type="button" class="btn btn-secondary btn-sm" onclick="cancelReply(${comment.id})">취소</button>
-                            </form>
-                        </div>
-
-                        <!-- 수정 폼 (기본적으로 숨김) -->
-                        <form id="editCommentForm-${comment.id}" class="edit-form" style="display: none;">
-                            <input type="hidden" id="editCommentId-${comment.id}" value="${comment.id}">
-                            <textarea class="form-control mb-2" id="editCommentContent-${comment.id}" rows="3">${comment.content}</textarea>
-                            <button type="button" class="btn btn-success btn-sm" onclick="updateComment(${comment.id})">수정 완료</button>
-                            <button type="button" class="btn btn-secondary btn-sm" onclick="cancelEdit(${comment.id})">취소</button>
+                    <!-- 답글 폼 -->
+                    <div id="replyForm-${comment.id}" class="reply-form mt-3 ms-4" style="display: none;">
+                        <form>
+                            <textarea class="form-control mb-2" id="replyContent-${comment.id}" rows="3" placeholder="답글을 입력하세요..."></textarea>
+                            <button type="button" class="btn btn-success btn-sm" onclick="saveReply(${comment.id})">작성</button>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="cancelReply(${comment.id})">취소</button>
                         </form>
                     </div>
-                    ${actionButtons} <!-- 수정/삭제 버튼 조건부 렌더링 -->
-                </div>
-                 ${getReplies(comment.replies)}
-            </li>`
-                ;
-                commentList.innerHTML += commentHtml;
 
+                    <!-- 수정 폼 -->
+                    <form id="editCommentForm-${comment.id}" class="edit-form" style="display: none;">
+                        <input type="hidden" id="editCommentId-${comment.id}" value="${comment.id}">
+                        <textarea class="form-control mb-2" id="editCommentContent-${comment.id}" rows="3">${comment.content}</textarea>
+                        <button type="button" class="btn btn-success btn-sm" onclick="updateComment(${comment.id})">수정 완료</button>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="cancelEdit(${comment.id})">취소</button>
+                    </form>
+                </div>
+                ${actionButtons} <!-- 수정/삭제 버튼 -->
+            </div>
+            ${comment.replies ? getReplies(comment.replies) : ""}
+        </li>`;
+
+                // 기존 `innerHTML +=` 대신 `createElement` 방식 적용
+                const tempDiv = document.createElement("div");
+                tempDiv.innerHTML = commentHtml;
+                commentList.appendChild(tempDiv.firstElementChild);
             });
+
+            console.log("✅ 댓글 리스트가 정상적으로 업데이트되었습니다.");
         }
+
+
 
         function updatePagination(comments) {
             const paginationContainer = document.getElementById('pagination');
@@ -322,29 +327,35 @@
             // 답글 폼 표시
             replyForm.style.display = "block";
         }
-        function getReplies(replies) {
-            if (!replies || replies.length === 0) return "";
 
-            return `
-        <ul class="reply-list ms-4"> <!-- 들여쓰기 적용 -->
-            ${replies.map(reply => `
-                <li class="reply-item" id="reply-${reply.id}">
-                    <div class="media mb-2 p-2 border rounded bg-light">
-                        <div class="media-body">
-                            <div class="d-flex justify-content-between">
-                                <span class="font-weight-bold text-secondary">${reply.author}</span>
-                                <span>${formatDate(reply.createdAt)}</span>
-                            </div>
-                            <p class="mb-1 text-dark">${reply.content}</p>
+        function getReplies(replies) {
+            if (!replies || replies.length === 0) {
+                return ""; // 대댓글이 없으면 빈 문자열 반환
+            }
+
+            let replyHtml = '<ul class="reply-list ms-4">'; // 들여쓰기 적용
+            replies.forEach(reply => {
+                const formattedDate = formatDate(reply.createdAt);
+                replyHtml += `
+            <li class="reply-item" id="reply-${reply.id}">
+                <div class="media mb-2 p-2 border rounded shadow-sm bg-light">
+                    <div class="media-body">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold text-primary mb-2">${reply.author}</span>
+                            <span class="text-muted small">${formattedDate}</span>
                         </div>
+                        <p class="mb-1 text-dark">${reply.content}</p>
                     </div>
-                </li>
-            `).join('')}
-        </ul>
-    `;
+                </div>
+            </li>`;
+            });
+            replyHtml += "</ul>";
+
+            return replyHtml;
         }
 
-        function createReply(parentId) {
+
+        function saveReply(parentId) {
 
             const postId = document.getElementById("postId").value;
             const content = document.getElementById(`replyContent-${parentId}`).value;
@@ -354,7 +365,7 @@
                 return;
             }
 
-            axios.post(`/reply/create/${parentId}`, {
+            axios.post(`/comment/reply/save`, {
                 postId: postId,
                 author: loginMember,
                 parentId: parentId,

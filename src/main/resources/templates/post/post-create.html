@@ -41,21 +41,51 @@
         </form>
     </div>
     <script>
-        let myEditor;
+        class MyUploadAdapter {
+            constructor(loader) {
+                this.loader = loader;
+            }
+
+            upload() {
+                return this.loader.file.then(file => {
+                    const data = new FormData();
+                    data.append('imageFile', file);
+
+                    return axios.post('/post/api/images/upload', data)
+                        .then(response => {
+                            // 서버에서 이미지 URL을 반환한다고 가정
+                            return {
+                                default: response.data.url
+                            };
+                        });
+                });
+            }
+
+            abort() {
+                // 업로드 취소 시 필요한 로직 (필요 시)
+            }
+        }
+
+        // 어댑터를 에디터에 등록
+        function CustomUploadAdapterPlugin(editor) {
+            editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+                return new MyUploadAdapter(loader);
+            };
+        }
+
+        // CKEditor 생성 시 플러그인 등록
         ClassicEditor
-            .create(document.querySelector("#editor"),{
-                removePlugins: ['MediaEmbed'],
-                ckfinder: {
-                    uploadUrl : '/image/upload'
+            .create(document.querySelector('#editor'), {
+                extraPlugins: [CustomUploadAdapterPlugin],
+                // 필요 시 이미지 툴바 옵션
+                image: {
+                    toolbar: ['imageTextAlternative', 'imageStyle:full', 'imageStyle:side']
                 }
             })
-            .then(editor => {
-                myEditor = editor;
-                console.log('Editor was initialized');
-            })
             .catch(error => {
-                console.log(error);
+                console.error(error);
             });
+
 
 
     </script>

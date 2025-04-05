@@ -19,6 +19,6 @@ public class PostUpdateDto {
     private PostCategory category;
     private String content;
     private String isDeleted;
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
 }

@@ -7,18 +7,17 @@
             <div class="card-body">
 
                 <h4 class="card-title text-center mb-4">회원가입</h4>
-                <form th:action="@{/member/signUp}" th:object="${signUpDto}" method="post" id="signUpForm" onsubmit="submitForm(event)">
+                <form th:action="@{/member/signUp}" th:object="${signUpDto}" method="post" id="signUpForm" onsubmit="validateAll(event)">
                     <div class="mb-3">
                         <label for="username" class="form-label">아이디</label>
                         <input type="text" class="form-control" id="username" th:field="*{username}"
-                               onkeyup="checkUsername();" required>
-                        <span th:if="${#fields.hasErrors('username')}" th:errors="*{username}" class="text-danger"></span>
+                               onkeyup="checkUsername();" >
                         <div id="usernameCheckResult"></div>
                     </div>
                     <div class="mb-3">
                         <label for="nickname" class="form-label">닉네임</label>
                         <input type="text" class="form-control" id="nickname" th:field="*{nickname}"
-                               onkeyup="checkNickname();" required>
+                               onkeyup="checkNickname();" >
                         <span th:if="${#fields.hasErrors('nickname')}" th:errors="*{nickname}" class="text-danger"></span>
                         <div id="nicknameCheckResult"></div>
                     </div>
@@ -50,100 +49,87 @@
         let isUsernameValid = false;
         let isPasswordValid = false;
         let isEmailValid = false;
+        async function validateAll(event) {
+            event.preventDefault();
 
-        function checkUsername(event) {
-            let username = document.getElementById("username").value;
-            let resultDiv = document.getElementById("usernameCheckResult");
+            const username = document.getElementById("username").value.trim();
+            const password = document.getElementById("password").value.trim();
+            const confirmPassword = document.getElementById("confirmPassword").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const nickname = document.getElementById("nickname").value.trim();
 
-            if (!username.trim()) {
-                resultDiv.style.color = "green";
-                resultDiv.innerText = "아이디를 입력해주세요.";
-                return;  // 빈 값일 경우 중복 검사 중단
+            const usernameResult = document.getElementById("usernameCheckResult");
+            const passwordResult = document.getElementById("passwordMatchResult");
+            const emailResult = document.getElementById("emailCheckResult");
+            const nicknameResult = document.getElementById("nicknameCheckResult");
+
+            let isValid = true;
+
+            // 공백 유효성 검사 먼저
+            if (!username) {
+                usernameResult.innerText = "아이디를 입력해주세요.";
+                usernameResult.style.color = "red";
+                isValid = false;
+            }
+            if (!password || !confirmPassword) {
+                passwordResult.innerText = "비밀번호를 입력해주세요.";
+                passwordResult.style.color = "red";
+                isValid = false;
             }
 
-            // 서버로 아이디 중복 체크 요청
-            axios.post("/member/check-username", { username })
-                .then(response => {
-                    resultDiv.style.color = "green";
-                    resultDiv.innerText = response.data;
-                    isUsernameValid = true;  // 검증 통과
-                })
-                .catch(error => {
-                    resultDiv.style.color = "red";
-                    resultDiv.innerText = error.response.data;
-                    isUsernameValid = false;  // 검증 실패
-                });
-        }
+            if (!email) {
+                emailResult.innerText = "이메일을 입력해주세요.";
+                emailResult.style.color = "red";
+                isValid = false;
+            }
+            if (!nickname) {
+                nicknameResult.innerText = "닉네임을 입력해주세요.";
+                nicknameResult.style.color = "red";
+                isValid = false;
+            }
 
-        function checkPasswordMatch(event) {
-            let password = document.getElementById("password").value;
-            let confirmPassword = document.getElementById("confirmPassword").value;
-            let resultDiv = document.getElementById("passwordMatchResult");
+            if (!isValid) return;  // 공백 입력이 있을 경우 중단
 
-            // 서버로 비밀번호 확인 요청
-            axios.post("/member/check-password", { password, confirmPassword })
-                .then(response => {
-                    resultDiv.style.color = "green";
-                    resultDiv.innerText = response.data;
-                    isPasswordValid = true;  // 검증 통과
-                })
-                .catch(error => {
-                    resultDiv.style.color = "red";
-                    resultDiv.innerText = error.response.data;
-                    isPasswordValid = false;  // 검증 실패
-                });
-        }
+            // 비동기 병렬 검증
+            try {
+                const [usernameRes, passwordRes, emailRes, nicknameRes] = await Promise.all([
+                    axios.post("/member/check-username", { username }),
+                    axios.post("/member/check-password", { password, confirmPassword }),
+                    axios.post("/member/check-email", { email }),
+                    axios.post("/member/check-nickname", { nickname })
+                ]);
 
-        function checkEmail(event) {
-            let email = document.getElementById("email").value;
-            let resultDiv = document.getElementById("emailCheckResult");
+                usernameResult.innerText = usernameRes.data;
+                usernameResult.style.color = "green";
 
-            // 서버로 이메일 중복 체크 요청
-            axios.post("/member/check-email", { email })
-                .then(response => {
-                    resultDiv.style.color = "green";
-                    resultDiv.innerText = response.data;
-                    isEmailValid = true;  // 검증 통과
-                })
-                .catch(error => {
-                    resultDiv.style.color = "red";
-                    resultDiv.innerText = error.response.data;
-                    isEmailValid = false;  // 검증 실패
-                });
-        }
+                passwordResult.innerText = passwordRes.data;
+                passwordResult.style.color = "green";
 
-        function checkNickname(event) {
-            let email = document.getElementById("nickname").value;
-            let resultDiv = document.getElementById("nicknameCheckResult");
+                emailResult.innerText = emailRes.data;
+                emailResult.style.color = "green";
 
-            // 서버로 이메일 중복 체크 요청
-            axios.post("/member/check-email", { email })
-                .then(response => {
-                    resultDiv.style.color = "green";
-                    resultDiv.innerText = response.data;
-                    isEmailValid = true;  // 검증 통과
-                })
-                .catch(error => {
-                    resultDiv.style.color = "red";
-                    resultDiv.innerText = error.response.data;
-                    isEmailValid = false;  // 검증 실패
-                });
-        }
+                nicknameResult.innerText = nicknameRes.data;
+                nicknameResult.style.color = "green";
 
-        // 폼 제출 시 모든 검증이 완료되었는지 확인하는 함수
-        function submitForm(event) {
-            event.preventDefault();  // 기본 폼 제출을 막음
+                // 모든 검증 통과 시 폼 제출
+                document.getElementById("signUpForm").submit();
 
-            if (isUsernameValid && isPasswordValid && isEmailValid) {
-                document.getElementById("signUpForm").submit();  // 모든 검증을 통과한 경우 폼을 제출
-            } else {
-                // 검증 실패 시 첫 번째 오류 필드로 포커스를 이동
-                if (!isUsernameValid) {
-                    document.getElementById("username").focus();
-                } else if (!isPasswordValid) {
-                    document.getElementById("confirmPassword").focus();
-                } else if (!isEmailValid) {
-                    document.getElementById("email").focus();
+            } catch (error) {
+                const errRes = error.response?.data || "오류 발생";
+                const url = error.config.url;
+
+                if (url.includes("check-username")) {
+                    usernameResult.innerText = errRes;
+                    usernameResult.style.color = "red";
+                } else if (url.includes("check-password")) {
+                    passwordResult.innerText = errRes;
+                    passwordResult.style.color = "red";
+                } else if (url.includes("check-email")) {
+                    emailResult.innerText = errRes;
+                    emailResult.style.color = "red";
+                } else if (url.includes("check-nickname")) {
+                    nicknameResult.innerText = errRes;
+                    nicknameResult.style.color = "red";
                 }
             }
         }

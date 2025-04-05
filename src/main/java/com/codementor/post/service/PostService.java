@@ -19,6 +19,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -101,7 +102,16 @@ public class PostService {
         Member author = findMember.get();  // 값이 있을 때만 꺼냄
         log.info("글작성 회원 아이디: {}", author.getUsername());
         Post post = postCreateMapper.toEntity(dto);
-        post.setContent(Jsoup.parse(dto.getContent()).text());
+//        Safelist safelist = Safelist.relaxed()
+//                .addTags("figure") // CKEditor에서 사용하는 태그 추가
+//                .addAttributes("img", "src", "alt", "width", "height", "style")
+//                .addAttributes("figure", "class") // figure에 class="image" 허용
+//        .preserveRelativeLinks(true);
+
+
+//        String safeContent = Jsoup.clean(dto.getContent(), safelist);
+//        log.info("필터링 후 내용: {}", safeContent);
+        post.setContent(dto.getContent());
         post.setAuthor(author);
         postRepository.save(post);
     }
@@ -134,7 +144,6 @@ public class PostService {
     public void updatePost(PostUpdateDto dto) {
         Post post = postRepository.findById(dto.getId()).orElse(null);
         post.update(dto);
-        post.setContent(Jsoup.parse(dto.getContent()).text());
     }
 
     @Transactional

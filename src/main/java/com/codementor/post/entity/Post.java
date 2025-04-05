@@ -50,10 +50,10 @@ public class Post {
     private String isDeleted = "N";
 
     @CreatedDate
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt;
 
     @LastModifiedDate
-    private LocalDateTime updatedAt = LocalDateTime.now();;
+    private LocalDateTime updatedAt;
 
     // 수정 메서드 추가
     public void update(PostUpdateDto dto) {
