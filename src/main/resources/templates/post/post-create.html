@@ -5,7 +5,7 @@
     <div class="container-xxl">
         <h2 class="text-center mb-4">게시글 작성</h2>
 
-        <form th:action="@{/post/create}" th:object="${dto}" method="post">
+        <form th:action="@{/post/create}" th:object="${dto}" method="post" id="postForm">
             <input th:type="hidden" name="authorName" th:field="*{author}"
                    th:value="${session.loginMember.username}">
             <input th:type="hidden" name="postId" id="postId" th:value="${dto.id}">
@@ -36,11 +36,14 @@
             <!-- 제출 버튼 -->
             <div class="d-flex justify-content-end">
                 <button type="submit" class="btn btn-primary" onclick="submitPost()">작성</button>
-                <a href="/post/posts" class="btn btn-secondary ms-2">취소</a>
+                <button type="button" class="btn btn-secondary ms-2" id="cancelBtn">취소</button>
             </div>
         </form>
     </div>
     <script>
+        // 업로드된 이미지 파일명을 저장할 전역 배열
+        let uploadedImageFilenames = [];
+
         class MyUploadAdapter {
             constructor(loader) {
                 this.loader = loader;
@@ -53,40 +56,70 @@
 
                     return axios.post('/post/api/images/upload', data)
                         .then(response => {
-                            // 서버에서 이미지 URL을 반환한다고 가정
+                            // 서버에서 filename도 같이 보내도록 해야 함
+                            const url = response.data.url;
+                            const filename = response.data.filename;
+
+
+                            console.log("filename: " + filename);
+                            // 업로드된 파일명을 배열에 저장
+                            if (filename) {
+                                uploadedImageFilenames.push(filename); // 또는 배열에 직접 추가
+                            }
+
                             return {
-                                default: response.data.url
+                                default: url
                             };
                         });
                 });
             }
 
-            abort() {
-                // 업로드 취소 시 필요한 로직 (필요 시)
-            }
         }
 
-        // 어댑터를 에디터에 등록
-        function CustomUploadAdapterPlugin(editor) {
+        function MyCustomUploadAdapterPlugin(editor) {
             editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
                 return new MyUploadAdapter(loader);
             };
         }
 
-        // CKEditor 생성 시 플러그인 등록
         ClassicEditor
             .create(document.querySelector('#editor'), {
-                extraPlugins: [CustomUploadAdapterPlugin],
-                // 필요 시 이미지 툴바 옵션
-                image: {
-                    toolbar: ['imageTextAlternative', 'imageStyle:full', 'imageStyle:side']
-                }
+                extraPlugins: [MyCustomUploadAdapterPlugin],
             })
             .catch(error => {
                 console.error(error);
             });
 
 
+        document.getElementById("cancelBtn").addEventListener("click", cancelPost);
+
+        // 취소 버튼 클릭 시 업로드된 이미지 삭제 후 페이지 이동
+        function cancelPost() {
+            console.log(uploadedImageFilenames);
+            console.log("clicked!")
+            if (uploadedImageFilenames.length === 0) {
+                window.location.href = "/post/posts";
+                return;
+            }
+
+            axios.post('/post/api/images/delete-multiple', {
+                filenames: uploadedImageFilenames
+            })
+                .then(() => {
+                    console.log("✅ 이미지 삭제 완료");
+                    window.location.href = "/post/posts";
+                })
+                .catch(error => {
+                    console.error("❌ 이미지 삭제 실패", error);
+                    window.location.href = "/post/posts";
+                });
+        }
+
+
+        // 폼 제출 함수
+        function submitPost() {
+            document.getElementById("postForm").submit();
+        }
 
     </script>
 </th:block>

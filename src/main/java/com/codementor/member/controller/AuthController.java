@@ -37,7 +37,7 @@ public class AuthController {
 
     @PostMapping("/check-username")
     @ResponseBody
-    public ResponseEntity<String> checkUsername(@RequestBody SignUpRequestDto dto) {
+    public ResponseEntity checkUsername(@RequestBody SignUpRequestDto dto) {
         boolean check = memberService.checkUsername(dto);
 
         if (check) {
@@ -49,7 +49,7 @@ public class AuthController {
 
     @PostMapping("/check-email")
     @ResponseBody
-    public ResponseEntity<String> checkEmail(@RequestBody SignUpRequestDto dto) {
+    public ResponseEntity checkEmail(@RequestBody SignUpRequestDto dto) {
         boolean check = memberService.checkEmail(dto);
 
         if (check) {
@@ -61,7 +61,7 @@ public class AuthController {
 
     @PostMapping("/check-nickname")
     @ResponseBody
-    public ResponseEntity<String> checkNickname(@RequestBody SignUpRequestDto dto) {
+    public ResponseEntity checkNickname(@RequestBody SignUpRequestDto dto) {
         boolean check = memberService.checkEmail(dto);
 
         if (check) {
@@ -73,7 +73,7 @@ public class AuthController {
 
     @PostMapping("/check-password")
     @ResponseBody
-    public ResponseEntity<String> checkPassword(@RequestBody SignUpRequestDto dto) {
+    public ResponseEntity checkPassword(@RequestBody SignUpRequestDto dto) {
 
         boolean check = memberService.checkPassword(dto);
 

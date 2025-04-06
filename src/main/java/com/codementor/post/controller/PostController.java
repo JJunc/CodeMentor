@@ -9,6 +9,7 @@ import com.codementor.member.dto.MemberListDto;
 import com.codementor.member.enums.SessionConst;
 import com.codementor.post.dto.*;
 import com.codementor.post.enums.PostCategory;
+import com.codementor.post.service.ImageService;
 import com.codementor.post.service.PostService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -43,13 +44,11 @@ import java.util.regex.Pattern;
 public class PostController {
 
     private final PostService postService;
+    private final ImageService imageService;
     private final CommentService commentService;
 
     @Value("${file.upload-dir}")
     private String uploadDir;
-
-    @Value("${temp.upload.dir}")
-    private String tempUploadDir;
 
     @GetMapping("/{category}")
     public String posts(@PathVariable PostCategory category
@@ -110,41 +109,22 @@ public class PostController {
             return ResponseEntity.badRequest().body("이미지 파일이 비어있습니다.");
         }
 
-        try {
-            // 예시: 서버에 저장
-            String fileName = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
-            Path savePath = Paths.get(uploadDir, fileName);
-            Files.copy(imageFile.getInputStream(), savePath);
-
-            // 이미지 접근 URL 생성 (정적 자원으로 서빙하거나 직접 서빙)
-            String imageUrl = "/images/" + fileName;
-
-            Map<String, String> result = new HashMap<>();
-            result.put("url", imageUrl);
-            return ResponseEntity.ok(result);
-
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("파일 업로드 실패");
-        }
+        Map<String, String> result = imageService.saveImage(imageFile);
+        return ResponseEntity.ok(result);
     }
 
-    @PostMapping("/upload-image")
+    @PostMapping("/api/images/delete-multiple")
     @ResponseBody
-    public Map<String, Object> uploadImage2(@RequestParam("upload") MultipartFile file) throws IOException {
-        // 저장 디렉토리
-        String uploadDir = "/Users/yourname/upload/images"; // 실제 경로
-
-        // 고유 파일 이름 생성
-        String uuid = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-        Path savePath = Paths.get(uploadDir, uuid);
-        Files.copy(file.getInputStream(), savePath, StandardCopyOption.REPLACE_EXISTING);
-
-        // 응답
-        Map<String, Object> response = new HashMap<>();
-        response.put("url", "/images/" + uuid); // 중요! 절대 경로로 주기
-        return response;
+    public ResponseEntity<Void> deleteImages(@RequestBody Map<String, List<String>> request) {
+        List<String> filenames = request.get("filenames");
+        if (filenames != null) {
+            log.info("이미지 삭제 실행");
+            for (String filename : filenames) {
+                imageService.deleteImageFile(filename);
+            }
+        }
+        return ResponseEntity.ok().build();
     }
-
 
     @GetMapping("/{category}/{id}")
     public String post(@PathVariable PostCategory category, @PathVariable Long id, Model model) {
