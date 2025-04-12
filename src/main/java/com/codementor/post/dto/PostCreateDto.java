@@ -21,6 +21,7 @@ public class PostCreateDto {
     private Long postId;
     private String content;
     private String author;
+    private String authorNickname;
     private LocalDateTime createdAt = LocalDateTime.now();
     private List<String> tempImageIds; // 클라이언트에서 받은 임시 이미지 ID
     private List<String> imagePaths; // 최종 저장된 이미지 경로

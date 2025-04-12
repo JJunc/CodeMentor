@@ -12,9 +12,7 @@ public interface PostDetailMapper {
 
     PostDetailMapper INSTANCE = Mappers.getMapper(PostDetailMapper.class);
 
-    @Mapping(source = "author.username", target = "author")
     PostDetailDto toDto(Post post);
 
-    @Mapping(source = "author", target = "author.username")
     Post toEntity(PostDetailDto postDetailDto);
 }

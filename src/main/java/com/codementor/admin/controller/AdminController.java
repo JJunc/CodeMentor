@@ -2,7 +2,7 @@ package com.codementor.admin.controller;
 
 import com.codementor.admin.dto.MemberSuspensionDto;
 import com.codementor.admin.service.AdminService;
-import com.codementor.comment.dto.CommentDto;
+import com.codementor.comment.dto.CommentResponseDto;
 import com.codementor.comment.dto.CommentSearchDto;
 import com.codementor.comment.service.CommentService;
 import com.codementor.member.dto.LoginResponseDto;
@@ -101,7 +101,7 @@ public class AdminController {
         log.info("검색 카테고리 = {}", searchDto.getCategory());
 
         if (result.isEmpty()) {
-            model.addAttribute("noResults", true); // 검색 결과 없음 플래그 추가
+            redirectAttributes.addFlashAttribute("noResults", true); // 검색 결과 없음 플래그 추가
             return  "redirect:/admin/post/" + searchDto.getCategory(); // 다시 목록 페이지로 이동
         }
 
@@ -123,10 +123,10 @@ public class AdminController {
     }
 
     @GetMapping("/comments")
-    public String comments(@ModelAttribute CommentDto dto,
+    public String comments(@ModelAttribute CommentResponseDto dto,
                            Model model,
                            @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<CommentDto> commentDtoList = commentService.getComments(pageable);
+        Page<CommentResponseDto> commentDtoList = commentService.getComments(pageable);
 
         model.addAttribute("comments", commentDtoList);
 
@@ -137,7 +137,7 @@ public class AdminController {
     public String searchComment(@ModelAttribute CommentSearchDto dto, Model model,
                                 @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable){
 
-        Page<CommentDto> result = commentService.searchComments(dto, pageable);
+        Page<CommentResponseDto> result = commentService.searchComments(dto, pageable);
 
         if (result.isEmpty()) {
             model.addAttribute("noResults", true); // 검색 결과 없음 플래그 추가
@@ -150,7 +150,7 @@ public class AdminController {
     }
 
     @PostMapping("/comment/delete")
-    public String deleteComment(@ModelAttribute CommentDto dto, RedirectAttributes redirectAttributes) {
+    public String deleteComment(@ModelAttribute CommentResponseDto dto, RedirectAttributes redirectAttributes) {
         commentService.delete(dto);
 
         return "redirect:/admin/comments";

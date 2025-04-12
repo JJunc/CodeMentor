@@ -1,6 +1,7 @@
 package com.codementor.comment.service;
 
-import com.codementor.comment.dto.CommentDto;
+import com.codementor.comment.dto.CommentRequestDto;
+import com.codementor.comment.dto.CommentResponseDto;
 import com.codementor.comment.dto.CommentSearchDto;
 import com.codementor.comment.dto.mapper.CommentMapper;
 import com.codementor.comment.entity.Comment;
@@ -18,10 +19,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -33,43 +30,44 @@ public class CommentService {
     private final CommentMapper commentMapper;
     private final PostDetailMapper postDetailMapper;
 
-    public Long create(CommentDto commentDto) {
+    public Long create(CommentRequestDto commentRequestDto) {
         // 댓글을 작성할 게시판과 회원 조회
-        Post post = postRepository.findById(commentDto.getPostId())
+        Post post = postRepository.findById(commentRequestDto.getPostId())
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
-        Member author = memberRepository.findByUsername(commentDto.getAuthor())
+        Member author = memberRepository.findByUsername(commentRequestDto.getAuthor())
                 .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
 
         log.info("댓글 작성 닉네임: {}", author.getNickname());
 
         // DTO → 엔티티 변환
-        commentDto.setNickname(author.getNickname());
-        Comment comment = commentMapper.toEntity(commentDto);
+        Comment comment = commentMapper.requestToEntity(commentRequestDto);
         comment.setPost(post);
         comment.setMember(author);
+        comment.setNickname(author.getNickname());
 
         return commentRepository.save(comment).getId();
     }
 
 
-    public Long saveReply(CommentDto commentDto) {
+    public Long saveReply(CommentRequestDto commentRequestDto) {
         // 게시글 조회 (없으면 예외 발생)
-        Post post = postRepository.findById(commentDto.getPostId())
+        Post post = postRepository.findById(commentRequestDto.getPostId())
                 .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
 
         // 작성자 조회 (없으면 예외 발생)
-        Member author = memberRepository.findByUsername(commentDto.getAuthor())
+        Member author = memberRepository.findByUsername(commentRequestDto.getAuthor())
                 .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
 
         // DTO → 엔티티 변환
-        Comment comment = commentMapper.toEntity(commentDto);
+        Comment comment = commentMapper.requestToEntity(commentRequestDto);
         comment.setPost(post);
         comment.setMember(author);
+        comment.setNickname(author.getNickname());
 
         // 부모 댓글이 존재하면 설정
-        if (commentDto.getParentId() != null) {
-            Comment parentComment = commentRepository.findById(commentDto.getParentId())
+        if (commentRequestDto.getParentId() != null) {
+            Comment parentComment = commentRepository.findById(commentRequestDto.getParentId())
                     .orElseThrow(() -> new IllegalArgumentException("부모 댓글을 찾을 수 없습니다."));
 
             comment.setParent(parentComment);
@@ -80,7 +78,7 @@ public class CommentService {
     }
 
 
-    public Page<CommentDto> searchComments(CommentSearchDto dto, Pageable pageable) {
+    public Page<CommentResponseDto> searchComments(CommentSearchDto dto, Pageable pageable) {
         Page<Comment> comments;
 
         // 검색 조건이 없는 경우 전체 조회
@@ -104,31 +102,31 @@ public class CommentService {
             }
         }
 
-        return comments.map(commentMapper::toDto);
+        return comments.map(commentMapper::toResponseDto);
     }
 
-    public Page<CommentDto> getComments(Long postId, Pageable pageable) {
+    public Page<CommentResponseDto> getComments(Long postId, Pageable pageable) {
         Page<Comment> comments = commentRepository.findByPostId(postId, pageable);
 
-        return comments.map(commentMapper::toDto); // Mapper 사용
+        return comments.map(commentMapper::toResponseDto); // Mapper 사용
     }
 
 
-    public Page<CommentDto> getComments(Pageable pageable) {
+    public Page<CommentResponseDto> getComments(Pageable pageable) {
         Page<Comment> commentPage = commentRepository.findAll(pageable);
         return commentPage.map(comment -> {
             Post post = postRepository.findById(comment.getPost().getId()).get();
-            CommentDto dto = commentMapper.toDto(comment);
+            CommentResponseDto dto = commentMapper.toResponseDto(comment);
             dto.setPostDetail(postDetailMapper.toDto(post));
             log.info("댓글이 작성된 날짜 = {}", dto.getCreatedAt());
             return dto;
         });
     }
 
-    public Page<CommentDto> getMyComments(String username, Pageable pageable) {
+    public Page<CommentResponseDto> getMyComments(String username, Pageable pageable) {
         Page<Comment> commentPage = commentRepository.findByUsername(username, pageable);
         return commentPage.map(comment -> {
-            CommentDto dto = commentMapper.toDto(comment);
+            CommentResponseDto dto = commentMapper.toResponseDto(comment);
             Post post = postRepository.findById(dto.getPostId()).get();
             log.info("댓글이 작성된 게시글 = {}", post.getTitle());
             log.info("댓글이 작성된 날짜 = {}", dto.getCreatedAt());
@@ -138,15 +136,15 @@ public class CommentService {
     }
 
     @Transactional
-    public void edit(CommentDto commentDto) {
-        Comment comment = commentRepository.findById(commentDto.getId()).orElse(null);
+    public void edit(CommentRequestDto commentRequestDto) {
+        Comment comment = commentRepository.findById(commentRequestDto.getId()).orElse(null);
 
-        comment.update(commentDto);
+        comment.update(commentRequestDto);
     }
 
     @Transactional
-    public void delete(CommentDto commentDto) {
-        Comment comment = commentRepository.findById(commentDto.getId()).orElse(null);
+    public void delete(CommentResponseDto commentResponseDto) {
+        Comment comment = commentRepository.findById(commentResponseDto.getId()).orElse(null);
 
         if (comment.getParent() != null) {
             comment.removeReply(comment);

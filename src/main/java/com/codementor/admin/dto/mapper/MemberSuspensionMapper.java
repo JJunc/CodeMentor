@@ -10,6 +10,5 @@ public interface MemberSuspensionMapper {
 
     MemberSuspensionDto toDto(MemberSuspension memberSuspension);
 
-    @Mapping(source = "memberId", target = "member.id")
     MemberSuspension toEntity(MemberSuspensionDto memberSuspensionDto);
 }

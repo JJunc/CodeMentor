@@ -1,6 +1,6 @@
 package com.codementor.post.dto;
 
-import com.codementor.comment.dto.CommentDto;
+import com.codementor.comment.dto.CommentResponseDto;
 import com.codementor.post.enums.PostCategory;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,7 +20,7 @@ public class PostDetailDto {
     private String title;
     private String content;
     private String author;
-    private List<CommentDto> comments;
+    private List<CommentResponseDto> comments;
     private PostCategory category;
     private int views;
     private LocalDateTime createdAt;

@@ -16,7 +16,7 @@ public class PostListDto {
 
     private Long id;
     private String title;
-    private String author;
+    private String authorNickname;
     private PostCategory category;
     private String isDeleted;
     private int views;

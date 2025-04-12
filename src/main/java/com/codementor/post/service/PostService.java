@@ -8,32 +8,18 @@ import com.codementor.post.dto.mapper.PostCreateMapper;
 import com.codementor.post.dto.mapper.PostDetailMapper;
 import com.codementor.post.dto.mapper.PostListMapper;
 import com.codementor.post.entity.Post;
-import com.codementor.post.entity.PostImage;
 import com.codementor.post.enums.PostCategory;
-import com.codementor.post.repository.PostImageRepository;
 import com.codementor.post.repository.PostRepository;
 
-import com.codementor.utils.file.Base64Utils;
-import com.codementor.utils.file.UploadFile;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jsoup.Jsoup;
-import org.jsoup.safety.Safelist;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -41,7 +27,6 @@ import java.util.stream.Collectors;
 public class PostService {
 
     private final PostRepository postRepository;
-    private final PostImageRepository postImageRepository;
     private final MemberRepository memberRepository;
     private final PostCreateMapper postCreateMapper;
     private final PostDetailMapper postDetailMapper;
@@ -55,10 +40,6 @@ public class PostService {
                 .map(postListMapper::toDto);
     }
 
-    public List<PostListDto> getPostList(PostCategory category) {
-        return postRepository.findByCategoryAndNotDeleted(category).stream().map(postListMapper::toDto).collect(Collectors.toList());
-    }
-
     public Page<PostListDto> searchPosts(PostSearchDto dto, Pageable pageable) {
         Page<Post> posts;
         log.info("검색조건: {}, 카테고리: {}", dto.getSearchType(), dto.getCategory());
@@ -70,6 +51,7 @@ public class PostService {
             // SearchType에 따라 조건을 다르게 처리
             switch (dto.getSearchType()) {
                 case TITLE:
+                    log.info("제목 검색 실행");
                     posts = postRepository.findByTitleAndCategory(dto.getKeyword(), dto.getCategory(), pageable);
                     break;
                 case CONTENT:
@@ -90,31 +72,24 @@ public class PostService {
         return posts.map(postListMapper::toDto);
     }
 
+    @Transactional
     public void createPost(PostCreateDto dto) {
-        Optional<Member> findMember = memberRepository.findByUsername(dto.getAuthor());
+        Member findMember = memberRepository.findByUsername
+                (dto.getAuthor()).orElseThrow(() ->  new IllegalStateException("존재하지 않는 회원입니다."));
+        dto.setAuthorNickname(findMember.getNickname());
 
         log.info("작성 글 내용: {}", dto.getContent());
 
-        if (findMember.isEmpty()) {
-            throw new IllegalStateException("존재하지 않는 회원입니다.");
-        }
 
-        Member author = findMember.get();  // 값이 있을 때만 꺼냄
-        log.info("글작성 회원 아이디: {}", author.getUsername());
+        log.info("글작성 회원 아이디: {}", findMember.getUsername());
+        log.info("글작성 회원 아이디: {}", findMember.getNickname());
+
         Post post = postCreateMapper.toEntity(dto);
-//        Safelist safelist = Safelist.relaxed()
-//                .addTags("figure") // CKEditor에서 사용하는 태그 추가
-//                .addAttributes("img", "src", "alt", "width", "height", "style")
-//                .addAttributes("figure", "class") // figure에 class="image" 허용
-//        .preserveRelativeLinks(true);
-
-
-//        String safeContent = Jsoup.clean(dto.getContent(), safelist);
-//        log.info("필터링 후 내용: {}", safeContent);
-        post.setContent(dto.getContent());
-        post.setAuthor(author);
+        post.createPost(dto);
         postRepository.save(post);
     }
+
+
 
     @Transactional
     public boolean savePost(PostCreateDto dto) throws IOException {
@@ -142,7 +117,7 @@ public class PostService {
 
     @Transactional
     public void updatePost(PostUpdateDto dto) {
-        Post post = postRepository.findById(dto.getId()).orElse(null);
+        Post post = postRepository.findById(dto.getId()).orElseThrow(() -> new IllegalStateException("해당 게시글이 존재하지 않습니다."));
         post.update(dto);
     }
 

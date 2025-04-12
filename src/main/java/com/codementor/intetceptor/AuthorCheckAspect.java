@@ -49,7 +49,7 @@ public class AuthorCheckAspect {
             case POST -> {
                 Post post = postRepository.findById(targetId)
                         .orElseThrow(() -> new IllegalArgumentException("게시글 없음"));
-                yield post.getAuthor().getUsername().equals(loginMember.getUsername());
+                yield post.getAuthorUsername().equals(loginMember.getUsername());
             }
             case COMMENT -> {
                 Comment comment = commentRepository.findById(targetId)

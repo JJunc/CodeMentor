@@ -1,10 +1,10 @@
 package com.codementor.comment.entity;
 
-import com.codementor.comment.dto.CommentDto;
+import com.codementor.comment.dto.CommentRequestDto;
+import com.codementor.comment.dto.CommentResponseDto;
 import com.codementor.member.entity.Member;
 import com.codementor.post.entity.Post;
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,13 +31,11 @@ public class Comment {
 
     private String isDeleted = "N";
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false, name="post_id", referencedColumnName = "id")
-    private Post post;
+    @JoinColumn(nullable = false, name="post_id")
+    private Long postId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false, name = "author_username", referencedColumnName = "username")
-    private Member member;
+    @JoinColumn(nullable = false, name = "author_username")
+    private Long username;
 
     @Column(name="author_nickname")
     private String nickname;
@@ -57,19 +55,20 @@ public class Comment {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     @LastModifiedDate
-    private LocalDateTime updatedAt = LocalDateTime.now();
+    private LocalDateTime updatedAt;
 
     public void delete() {
         this.isDeleted = "Y";
     }
 
-    public void update(CommentDto commentDto) {
-        this.content = commentDto.getContent();
+    public void update(CommentRequestDto commentResponseDto) {
+        this.content = commentResponseDto.getContent();
         this.updatedAt = LocalDateTime.now();
     }
 
     public void removeReply(Comment reply) {
         this.isDeleted = "Y";
+        this.updatedAt = LocalDateTime.now();
         this.replies.remove(reply);  // 리스트에서 삭제
         reply.setParent(null);  // 부모와의 관계 끊기
     }

@@ -22,9 +22,8 @@ public class MemberSuspension {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id", referencedColumnName = "id", nullable = false)
-    private Member member;  // 정지된 회원
+    @Column(nullable = false)
+    private Long memberId;  // 정지된 회원
 
     private String reason;  // 정지 사유
     private LocalDateTime startDate;

@@ -109,6 +109,9 @@ public class AuthController {
 
         LoginResponseDto loginMember = memberService.login(dto);
 
+
+        log.info("회원 로그인 : {}", loginMember.getUsername());
+
         if (bindingResult.hasErrors()) {
             model.addAttribute("loginDto", dto);
             return "/member/login-form";

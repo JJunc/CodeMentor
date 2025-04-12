@@ -150,6 +150,7 @@ public class MemberService {
         }
 
         member.updateNickname(dto);
+        postRepository.updateAuthorNickname(username, dto.getNickname());
         return true;
     }
 

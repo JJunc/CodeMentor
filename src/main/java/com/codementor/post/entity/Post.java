@@ -2,6 +2,7 @@ package com.codementor.post.entity;
 
 import com.codementor.comment.entity.Comment;
 import com.codementor.member.entity.Member;
+import com.codementor.post.dto.PostCreateDto;
 import com.codementor.post.dto.PostDetailDto;
 import com.codementor.post.dto.PostUpdateDto;
 import com.codementor.post.enums.PostCategory;
@@ -36,9 +37,11 @@ public class Post {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false, name = "author_username", referencedColumnName = "username")
-    private Member author;
+    @Column(nullable = false)
+    private String authorUsername;
+
+    @Column(nullable = false)
+    private String authorNickname;
 
     @Column(columnDefinition = "integer default 0")
     @ColumnDefault("0")
@@ -60,6 +63,13 @@ public class Post {
         this.title = dto.getTitle();
         this.content = dto.getContent();
         this.category = dto.getCategory();
+    }
+
+    public void createPost(PostCreateDto dto) {
+        this.title = dto.getTitle();
+        this.content = dto.getContent();
+        this.category = dto.getCategory();
+        this.authorNickname = dto.getAuthorNickname();
     }
 
     public void increaseViews() {

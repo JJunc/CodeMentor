@@ -11,10 +11,8 @@ public interface PostCreateMapper {
 
     PostCreateMapper INSTANCE = Mappers.getMapper(PostCreateMapper.class);
 
-    @Mapping(source = "author.username", target = "author")
     PostCreateDto toDto(Post post);
 
-    @Mapping(source = "author", target = "author.username")
     Post toEntity(PostCreateDto postCreateDto);
 
 }

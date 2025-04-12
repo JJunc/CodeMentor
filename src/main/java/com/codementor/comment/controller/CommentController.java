@@ -1,6 +1,7 @@
 package com.codementor.comment.controller;
 
-import com.codementor.comment.dto.CommentDto;
+import com.codementor.comment.dto.CommentRequestDto;
+import com.codementor.comment.dto.CommentResponseDto;
 import com.codementor.comment.service.CommentService;
 import com.codementor.intetceptor.AuthorOnly;
 import com.codementor.intetceptor.AuthorType;
@@ -25,7 +26,7 @@ public class CommentController {
     @GetMapping("/{postId}")
     public ResponseEntity getCommentList(@PathVariable Long postId,
                                          @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<CommentDto> commentDtoList = commentService.getComments(postId, pageable);
+        Page<CommentResponseDto> commentDtoList = commentService.getComments(postId, pageable);
 
         log.info("총 댓글 갯수 = {}", commentDtoList.getTotalElements());
         log.info("게시판 번호 = {}", postId);
@@ -33,12 +34,12 @@ public class CommentController {
     }
 
     @PostMapping("/save")
-    public ResponseEntity saveComment(@RequestBody CommentDto commentDto,
+    public ResponseEntity saveComment(@RequestBody CommentRequestDto commentRequestDto,
                                      @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        log.info("댓글이 작성될 게시판 번호 = {}", commentDto.getPostId());
-        Long saveResult = commentService.create(commentDto);
+        log.info("댓글이 작성될 게시판 번호 = {}", commentRequestDto.getPostId());
+        Long saveResult = commentService.create(commentRequestDto);
         if (saveResult != null) {
-            Page<CommentDto> commentDtoList = commentService.getComments(commentDto.getPostId(), pageable);
+            Page<CommentResponseDto> commentDtoList = commentService.getComments(commentRequestDto.getPostId(), pageable);
             return new ResponseEntity<>(commentDtoList, HttpStatus.OK);
         } else {
             return new ResponseEntity<>("해당 게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
@@ -47,13 +48,13 @@ public class CommentController {
 
     @PostMapping("/reply/save")
     public ResponseEntity replyComment(
-                                       @RequestBody CommentDto commentDto,
+                                       @RequestBody CommentRequestDto commentRequestDto,
                                        @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
-        log.info("답글이 작성될 게시판 번호 = {}", commentDto.getPostId());
-        Long saveResult = commentService.saveReply(commentDto);
+        log.info("답글이 작성될 게시판 번호 = {}", commentRequestDto.getPostId());
+        Long saveResult = commentService.saveReply(commentRequestDto);
         if (saveResult != null) {
-            Page<CommentDto> commentDtoList = commentService.getComments(commentDto.getPostId(), pageable);
+            Page<CommentResponseDto> commentDtoList = commentService.getComments(commentRequestDto.getPostId(), pageable);
             return new ResponseEntity<>(commentDtoList, HttpStatus.OK);
         } else {
             return new ResponseEntity<>("해당 게시글이 존재하지 않습니다.", HttpStatus.NOT_FOUND);
@@ -62,19 +63,19 @@ public class CommentController {
 
     @AuthorOnly(type = AuthorType.COMMENT)
     @PostMapping("/edit")
-    public ResponseEntity editComment(@RequestBody CommentDto commentDto,
+    public ResponseEntity editComment(@RequestBody CommentRequestDto commentRequestDto,
                                       @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        commentService.edit(commentDto);
-        Page<CommentDto> commentDtoList = commentService.getComments(commentDto.getPostId(), pageable);
+        commentService.edit(commentRequestDto);
+        Page<CommentResponseDto> commentDtoList = commentService.getComments(commentRequestDto.getPostId(), pageable);
         return new ResponseEntity<>(commentDtoList, HttpStatus.OK);
     }
 
     @AuthorOnly(type = AuthorType.COMMENT)
     @PostMapping("/delete")
-    public ResponseEntity deleteComment(@RequestBody CommentDto commentDto,
+    public ResponseEntity deleteComment(@RequestBody CommentResponseDto commentResponseDto,
                                         @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        commentService.delete(commentDto);
-        Page<CommentDto> commentDtoList = commentService.getComments(commentDto.getPostId(), pageable);
+        commentService.delete(commentResponseDto);
+        Page<CommentResponseDto> commentDtoList = commentService.getComments(commentResponseDto.getPostId(), pageable);
         return new ResponseEntity<>(commentDtoList, HttpStatus.OK);
     }
 

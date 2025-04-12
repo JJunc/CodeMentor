@@ -46,8 +46,6 @@ public class AdminService {
         } else {
             member.setStatus(dto.getMemberStatus());
 
-            memberSuspension.setMember(member);
-
             memberSuspension.suspense(dto);
         }
 
