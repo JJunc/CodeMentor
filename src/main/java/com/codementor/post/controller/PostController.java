@@ -2,10 +2,6 @@ package com.codementor.post.controller;
 
 import com.codementor.comment.dto.CommentResponseDto;
 import com.codementor.comment.service.CommentService;
-import com.codementor.intetceptor.AuthorOnly;
-import com.codementor.intetceptor.AuthorType;
-import com.codementor.member.dto.LoginResponseDto;
-import com.codementor.member.enums.SessionConst;
 import com.codementor.post.dto.*;
 import com.codementor.post.enums.PostCategory;
 import com.codementor.post.service.ImageService;
@@ -44,15 +40,22 @@ public class PostController {
 
     @GetMapping("/{category}")
     public String posts(@PathVariable PostCategory category
-            , @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            , @PageableDefault(page = 0, size = 10) Pageable pageable
             , Model model) {
-        pageable = PageRequest.of(pageable.getPageNumber(), 10, pageable.getSort());
+        long start = System.currentTimeMillis();
+        pageable = PageRequest.of(pageable.getPageNumber(), 10);
         if (category == null) {
             return "redirect:/post/FREE";
         }
 
+        log.info("게시판 카테고리 = {}", category);
+        log.info("페이지 넘버 = {}", pageable.getPageNumber());
         model.addAttribute("category", category);
         model.addAttribute("posts", postService.getPostList(category, pageable));
+        long end = System.currentTimeMillis();
+
+
+        log.info("실행시간 = {}", (end - start));
         return "/post/posts";
     }
 
@@ -136,7 +139,6 @@ public class PostController {
         return "/post/post-detail";
     }
 
-    @AuthorOnly(type = AuthorType.POST)
     @GetMapping("/edit/{id}")
     public String editPost(@PathVariable Long id, HttpSession session, Model model) {
         PostDetailDto dto = postService.getPost(id);
@@ -145,7 +147,6 @@ public class PostController {
         return "/post/post-edit";
     }
 
-    @AuthorOnly(type = AuthorType.POST)
     @PostMapping("/edit/{id}")
     public String updatePost(@ModelAttribute PostUpdateDto dto, HttpSession session, RedirectAttributes redirectAttributes) {
         postService.updatePost(dto);
@@ -158,7 +159,6 @@ public class PostController {
         return "redirect:/post/{category}/{id}";
     }
 
-    @AuthorOnly(type = AuthorType.POST)
     @PostMapping("/delete/{id}")
     public String deletePost(@ModelAttribute PostUpdateDto dto, RedirectAttributes redirectAttributes) {
         log.info("삭제된 게시글 제목 = {}", dto.getTitle());

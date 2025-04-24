@@ -17,6 +17,7 @@ public class PostUpdateDto {
     private Long id;
     private String title;
     private PostCategory category;
+    private String authorUsername;
     private String content;
     private String isDeleted;
     private LocalDateTime updatedAt = LocalDateTime.now();

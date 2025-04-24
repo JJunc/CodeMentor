@@ -1,26 +1,42 @@
 package com.codementor;
 
-import com.codementor.exception.ErrorResponse;
-import com.codementor.exception.ImageSaveException;
-import com.codementor.member.exceptions.MemberNotFoundException;
+import com.codementor.exception.*;
+import com.codementor.member.dto.LoginRequestDto;
+import com.codementor.member.dto.LoginResponseDto;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.nio.file.AccessDeniedException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(MemberNotFoundException.class)
-    @ResponseBody
-    public ResponseEntity<ErrorResponse> handleMemberNotFoundException(MemberNotFoundException e) {
-        return ResponseEntity.badRequest().body(new ErrorResponse(e.getMessage()));
+    @ExceptionHandler({MemberNotFoundException.class, PostNotFoundException.class, CommentNotFoundException.class, IllegalStateException.class})
+    public String handleMemberNotFoundException(MemberNotFoundException e) {
+        return "/error/404";
     }
+
+//    @ExceptionHandler(InvalidPasswordException.class)
+//    public ResponseEntity<String> handleInvalidPassword(InvalidPasswordException e) {
+//        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+//    }
+
+    @ExceptionHandler(LoginFailedException.class)
+    public String handleLoginFailed(LoginFailedException e, HttpServletRequest request, Model model) {
+
+        LoginRequestDto dto = new LoginRequestDto();
+        dto.setUsername(request.getParameter("username"));
+        model.addAttribute("loginFail", e.getMessage());
+        model.addAttribute("loginDto", dto);
+        return "/member/login-form";
+    }
+
+
 
     @ExceptionHandler(AccessDeniedException.class)
     public String handleAccessDenied(Exception e, Model model) {

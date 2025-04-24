@@ -1,40 +1,89 @@
 package com.codementor;
 
 
+import com.codementor.post.dto.PostListDto;
 import com.codementor.post.entity.Post;
 import com.codementor.post.enums.PostCategory;
+import com.codementor.post.enums.PostSearchType;
 import com.codementor.post.repository.PostRepository;
+import groovy.util.logging.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@Slf4j
+@Import(JPAConfig.class)
 class PagingTest {
 
+    private static final Logger log = LoggerFactory.getLogger(PagingTest.class);
     @Autowired
     private PostRepository postRepository;
 
+    @Autowired
+    private PostRepositoryImpl postRepositoryImpl;
+
     @Test
-    @DisplayName("기존 페이징 방식")
+    @DisplayName("마지막 페이지")
     void findByCategory_existingData() {
         // given
         PostCategory category = PostCategory.FREE;
-        PageRequest pageRequest = PageRequest.of(2000, 10, Sort.by(Sort.Direction.DESC, "createdAt"));  // 예: 2000번째 페이지
+        PageRequest pageRequest = PageRequest.of(99999, 10);
 
         // when
-        Page<Post> page = postRepository.findByCategoryAndNotDeleted(category, pageRequest);
+        Page<PostListDto> page = postRepository.findByCategory(category, pageRequest);
 
         // then
-        assertThat(page).isNotNull();
-        assertThat(page.getContent().size()).isLessThanOrEqualTo(10); // 마지막 페이지일 수 있으므로
-        assertThat(page.getNumber()).isEqualTo(2000);
+        assertThat(page.getContent()).hasSize(10);
     }
+
+    @Test
+    @DisplayName("검색 테스트")
+    void searchPost(){
+        // given
+        PostCategory category = PostCategory.FREE;
+        PostSearchType searchType = PostSearchType.CONTENT;
+        PageRequest pageRequest = PageRequest.of(999999, 10);
+        String content ="스프링";
+
+        // when
+//        Page<PostListDto> page = postRepository.findByContentAndCategory(content,category,pageRequest);
+
+        // then
+
+    }
+
+
+//    @Test
+//    @DisplayName("No Offset 방식")
+//    void NoOffset() {
+//        PostCategory category = PostCategory.FREE;
+//
+//
+//        Long cursorId = 3L;
+//
+//        int limit = 10;
+//
+//        // when
+//        List<Post> posts = postRepository.findNextPage(
+//                category, cursorId, limit
+//        );
+//
+//        // then
+//        assertThat(posts).isNotNull();
+//
+//        boolean hasNext = posts.size() == limit;
+//        System.out.println("Has next page? " + hasNext);
+//    }
+
 }

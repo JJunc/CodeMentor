@@ -31,16 +31,16 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 150)
     private String title;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private String authorUsername;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 50)
     private String authorNickname;
 
     @Column(columnDefinition = "integer default 0")
@@ -48,8 +48,10 @@ public class Post {
     private int views = 0;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 30)
     private PostCategory category;
 
+    @Column(nullable = false, length = 1)
     private String isDeleted = "N";
 
     @CreatedDate

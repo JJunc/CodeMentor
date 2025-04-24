@@ -9,8 +9,6 @@ import org.mapstruct.factory.Mappers;
 @Mapper(componentModel = "spring")
 public interface PostListMapper {
 
-    PostListMapper INSTANCE = Mappers.getMapper(PostListMapper.class);
-
     PostListDto toDto(Post post);
 
     Post toEntity(PostListDto postListDto);

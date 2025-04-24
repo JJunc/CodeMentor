@@ -1,7 +1,9 @@
 package com.codementor.post.service;
 
 
+import com.codementor.exception.PostNotFoundException;
 import com.codementor.member.entity.Member;
+import com.codementor.exception.MemberNotFoundException;
 import com.codementor.member.repository.MemberRepository;
 import com.codementor.post.dto.*;
 import com.codementor.post.dto.mapper.PostCreateMapper;
@@ -17,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -36,8 +39,7 @@ public class PostService {
     private String uploadDir;
 
     public Page<PostListDto> getPostList(PostCategory category, Pageable pageable) {
-        return postRepository.findByCategoryAndNotDeleted(category, pageable)
-                .map(postListMapper::toDto);
+        return postRepository.findByCategory(category, pageable);
     }
 
     public Page<PostListDto> searchPosts(PostSearchDto dto, Pageable pageable) {
@@ -46,7 +48,7 @@ public class PostService {
 
         // 검색 조건이 없는 경우 전체 조회
         if (dto.getSearchType() == null || dto.getKeyword() == null || dto.getKeyword().isEmpty()) {
-            posts = postRepository.findByCategory(dto.getCategory(), pageable);
+            posts = postRepository.findByCategoryOrderById(dto.getCategory(), pageable);
         } else {
             // SearchType에 따라 조건을 다르게 처리
             switch (dto.getSearchType()) {
@@ -75,7 +77,7 @@ public class PostService {
     @Transactional
     public void createPost(PostCreateDto dto) {
         Member findMember = memberRepository.findByUsername
-                (dto.getAuthor()).orElseThrow(() ->  new IllegalStateException("존재하지 않는 회원입니다."));
+                (dto.getAuthorUsername()).orElseThrow(() ->  new MemberNotFoundException("존재하지 않는 회원입니다."));
         dto.setAuthorNickname(findMember.getNickname());
 
         log.info("작성 글 내용: {}", dto.getContent());
@@ -89,24 +91,9 @@ public class PostService {
         postRepository.save(post);
     }
 
-
-
-    @Transactional
-    public boolean savePost(PostCreateDto dto) throws IOException {
-        // 게시글 저장
-        Post post = new Post();
-        postRepository.save(post);
-
-        if(dto.getImagePaths() != null) {
-
-        }
-
-        return true;
-    }
-
     @Transactional
     public void updateViews(PostDetailDto dto) {
-        Post post = postRepository.findById(dto.getId()).orElse(null);
+        Post post = postRepository.findById(dto.getId()).orElseThrow(() -> new PostNotFoundException("해당 게시글이 존재하지 않습니다."));
         post.increaseViews();
     }
 
@@ -117,14 +104,29 @@ public class PostService {
 
     @Transactional
     public void updatePost(PostUpdateDto dto) {
-        Post post = postRepository.findById(dto.getId()).orElseThrow(() -> new IllegalStateException("해당 게시글이 존재하지 않습니다."));
+        Post post = getPost(dto);
         post.update(dto);
     }
 
     @Transactional
     public void deletePost(PostUpdateDto dto) {
-        Post post = postRepository.findById(dto.getId()).orElse(null);
+        Post post = getPost(dto);
         post.setIsDeleted("Y");
+    }
+
+    // 게시글 찾기 메소드
+    private Post getPost(PostUpdateDto dto) {
+        Post post = postRepository.findById(dto.getId()).orElseThrow(() -> new PostNotFoundException("해당 게시글이 존재하지 않습니다."));
+
+        Member author = memberRepository.findByUsername(dto.getAuthorUsername())
+                .orElseThrow(() -> new AccessDeniedException("작성자 정보를 확인할 수 없습니다."));
+        ;
+
+        if (!post.getAuthorUsername().equals(author.getUsername())) {
+            throw new AccessDeniedException("작성자가 아닙니다.");
+        }
+
+        return post;
     }
 
 }

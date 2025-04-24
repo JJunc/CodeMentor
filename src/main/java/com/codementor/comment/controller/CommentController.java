@@ -3,8 +3,6 @@ package com.codementor.comment.controller;
 import com.codementor.comment.dto.CommentRequestDto;
 import com.codementor.comment.dto.CommentResponseDto;
 import com.codementor.comment.service.CommentService;
-import com.codementor.intetceptor.AuthorOnly;
-import com.codementor.intetceptor.AuthorType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -52,7 +50,7 @@ public class CommentController {
                                        @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
         log.info("답글이 작성될 게시판 번호 = {}", commentRequestDto.getPostId());
-        Long saveResult = commentService.saveReply(commentRequestDto);
+        Long saveResult = commentService.createReply(commentRequestDto);
         if (saveResult != null) {
             Page<CommentResponseDto> commentDtoList = commentService.getComments(commentRequestDto.getPostId(), pageable);
             return new ResponseEntity<>(commentDtoList, HttpStatus.OK);
@@ -61,7 +59,6 @@ public class CommentController {
         }
     }
 
-    @AuthorOnly(type = AuthorType.COMMENT)
     @PostMapping("/edit")
     public ResponseEntity editComment(@RequestBody CommentRequestDto commentRequestDto,
                                       @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
@@ -70,12 +67,11 @@ public class CommentController {
         return new ResponseEntity<>(commentDtoList, HttpStatus.OK);
     }
 
-    @AuthorOnly(type = AuthorType.COMMENT)
     @PostMapping("/delete")
-    public ResponseEntity deleteComment(@RequestBody CommentResponseDto commentResponseDto,
+    public ResponseEntity deleteComment(@RequestBody CommentRequestDto commentRequestDto,
                                         @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        commentService.delete(commentResponseDto);
-        Page<CommentResponseDto> commentDtoList = commentService.getComments(commentResponseDto.getPostId(), pageable);
+        commentService.delete(commentRequestDto);
+        Page<CommentResponseDto> commentDtoList = commentService.getComments(commentRequestDto.getPostId(), pageable);
         return new ResponseEntity<>(commentDtoList, HttpStatus.OK);
     }
 

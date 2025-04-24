@@ -19,7 +19,6 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     Optional<Member> findByUsername(String username);
 
-
     Optional<Member> findByUsernameAndPassword(String username, String password);
 
     Optional<Member> findByEmail(String email);
@@ -28,8 +27,5 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     Page<Member> findByEmail(String email,  Pageable pageable);
     Page<Member> findByNickname(String nickname,  Pageable pageable);
     Page<Member> findByCreatedAt(LocalDateTime createdAt, Pageable pageable);
-
-    Member findByid(Long id);
-
 
 }

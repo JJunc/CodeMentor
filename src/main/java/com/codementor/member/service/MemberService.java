@@ -1,5 +1,9 @@
 package com.codementor.member.service;
 
+import com.codementor.admin.dto.MemberUpdateDto;
+import com.codementor.exception.InvalidPasswordException;
+import com.codementor.exception.LoginFailedException;
+import com.codementor.exception.MemberNotFoundException;
 import com.codementor.member.dto.MemberSearchDto;
 import com.codementor.member.dto.mapper.MemberSearchMapper;
 import com.codementor.admin.entity.MemberSuspension;
@@ -10,7 +14,6 @@ import com.codementor.member.entity.Member;
 import com.codementor.member.enums.CheckPassword;
 import com.codementor.member.enums.MemberRole;
 import com.codementor.member.enums.MemberStatus;
-import com.codementor.member.exceptions.MemberNotFoundException;
 import com.codementor.member.repository.MemberRepository;
 import com.codementor.post.dto.PostListDto;
 import com.codementor.post.dto.mapper.PostListMapper;
@@ -111,15 +114,17 @@ public class MemberService {
 
     public LoginResponseDto login(LoginRequestDto dto) {
         Member member = memberRepository.findByUsername(dto.getUsername())
-                .orElse(null);
+                .orElseThrow(() -> new LoginFailedException("아이디 또는 비밀번호가 틀렸습니다."));
 
         if (!passwordEncoder.matches(dto.getPassword(), member.getPassword())) {
-            throw new IllegalStateException("아이디 또는 비밀번호가 맞지 않습니다.");
+            throw new LoginFailedException("비밀번호가 틀렸습니다.");  // 비밀번호 틀림
         }
 
+        log.info("member role = {}", member.getRole());
         LoginResponseDto loginResponseDto = new LoginResponseDto();
         loginResponseDto.setUsername(member.getUsername());
-        loginResponseDto.setStatus(member.getStatus());
+        loginResponseDto.setUsername(member.getUsername());
+        loginResponseDto.setRole(member.getRole());
 
         if (member.getStatus() != MemberStatus.ACTIVE) {
             MemberSuspension memberSuspension = memberSuspensionRepository.findByMemberId(member.getId())
@@ -133,16 +138,19 @@ public class MemberService {
     }
 
     public MemberEditPasswordDto memberToUpdateDto(String username) {
-        return memberUpdateMapper.toDto(memberRepository.findByUsername(username).orElse(null));
+        return memberUpdateMapper.toDto(memberRepository.findByUsername(username).orElseThrow(()
+                -> new MemberNotFoundException("존재하지 않는 회원입니다.")));
     }
 
     public MyPageDto memberToMyPageDto(String username) {
-        return myPageMapper.toDto(memberRepository.findByUsername(username).orElse(null));
+         return myPageMapper.toDto(memberRepository.findByUsername(username).orElseThrow(()
+                -> new MemberNotFoundException("존재하지 않는 회원입니다.")));
     }
 
     @Transactional
     public boolean editNickname(String username, MemberEditNicknameDto dto) {
-        Member member = memberRepository.findByUsername(username).orElse(null);
+        Member member = memberRepository.findByUsername(username).orElseThrow(()
+                -> new MemberNotFoundException("존재하지 않는 회원입니다."));
         log.info("회원 존재 여부 = {}", member.toString());
 
         if (member.getNickname().equals(dto.getNickname())) {
@@ -156,8 +164,8 @@ public class MemberService {
 
     @Transactional
     public boolean editEmail(String username, MemberEmailUpdateDto dto) {
-        Member member = memberRepository.findByUsername(username).orElse(null);
-        log.info("회원 존재 여부 = {}", member.toString());
+        Member member = memberRepository.findByUsername(username).orElseThrow(()
+                -> new MemberNotFoundException("존재하지 않는 회원입니다."));
 
         // 이메일 중복검사
         if (member.getEmail().equals(dto.getEmail())) {
@@ -173,7 +181,8 @@ public class MemberService {
 
     @Transactional
     public List<CheckPassword> editPassword(String username, MemberEditPasswordDto dto) {
-        Member member = memberRepository.findByUsername(username).orElse(null);
+        Member member = memberRepository.findByUsername(username).orElseThrow(()
+                -> new MemberNotFoundException("존재하지 않는 회원입니다."));
         List<CheckPassword> checkPasswords = new ArrayList<>();
 
         // 현재 비밀번호 검증
@@ -200,17 +209,16 @@ public class MemberService {
     }
 
     public Page<PostListDto> getMyPostList(String username, PostCategory category, Pageable pageable) {
+        Member member = memberRepository.findByUsername(username).orElseThrow(()
+                -> new MemberNotFoundException("존재하지 않는 회원입니다."));
         Page<Post> postPage = postRepository.findByCategoryAndAuthor(category, username, pageable);
         return postPage.map(post -> postListMapper.toDto(post));
     }
 
     @Transactional
     public void updateMemberRole(MemberRoleDto dto) {
-        Member member = memberRepository.findById(dto.getId()).orElse(null);
-
-        if (member == null) {
-            throw new IllegalArgumentException("회원이 존재하지 않습니다.");
-        }
+        Member member = memberRepository.findByUsername(dto.getNickname()).orElseThrow(()
+                -> new MemberNotFoundException("존재하지 않는 회원입니다."));
 
         String nickname = dto.getNickname();
 

@@ -6,6 +6,9 @@ import com.codementor.comment.dto.CommentSearchDto;
 import com.codementor.comment.dto.mapper.CommentMapper;
 import com.codementor.comment.entity.Comment;
 import com.codementor.comment.repository.CommentRepository;
+import com.codementor.exception.CommentNotFoundException;
+import com.codementor.exception.MemberNotFoundException;
+import com.codementor.exception.PostNotFoundException;
 import com.codementor.member.entity.Member;
 import com.codementor.member.repository.MemberRepository;
 import com.codementor.post.dto.mapper.PostDetailMapper;
@@ -16,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,42 +37,38 @@ public class CommentService {
     public Long create(CommentRequestDto commentRequestDto) {
         // 댓글을 작성할 게시판과 회원 조회
         Post post = postRepository.findById(commentRequestDto.getPostId())
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new PostNotFoundException("게시글을 찾을 수 없습니다."));
 
         Member author = memberRepository.findByUsername(commentRequestDto.getAuthor())
-                .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new MemberNotFoundException("작성자를 찾을 수 없습니다."));
 
         log.info("댓글 작성 닉네임: {}", author.getNickname());
 
         // DTO → 엔티티 변환
         Comment comment = commentMapper.requestToEntity(commentRequestDto);
-        comment.setPost(post);
-        comment.setMember(author);
         comment.setNickname(author.getNickname());
 
         return commentRepository.save(comment).getId();
     }
 
 
-    public Long saveReply(CommentRequestDto commentRequestDto) {
+    public Long createReply(CommentRequestDto commentRequestDto) {
         // 게시글 조회 (없으면 예외 발생)
         Post post = postRepository.findById(commentRequestDto.getPostId())
-                .orElseThrow(() -> new IllegalArgumentException("게시글을 찾을 수 없습니다."));
+                .orElseThrow(() -> new PostNotFoundException("게시글을 찾을 수 없습니다."));
 
         // 작성자 조회 (없으면 예외 발생)
         Member author = memberRepository.findByUsername(commentRequestDto.getAuthor())
-                .orElseThrow(() -> new IllegalArgumentException("작성자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new MemberNotFoundException("작성자를 찾을 수 없습니다."));
 
         // DTO → 엔티티 변환
         Comment comment = commentMapper.requestToEntity(commentRequestDto);
-        comment.setPost(post);
-        comment.setMember(author);
         comment.setNickname(author.getNickname());
 
         // 부모 댓글이 존재하면 설정
         if (commentRequestDto.getParentId() != null) {
             Comment parentComment = commentRepository.findById(commentRequestDto.getParentId())
-                    .orElseThrow(() -> new IllegalArgumentException("부모 댓글을 찾을 수 없습니다."));
+                    .orElseThrow(() -> new CommentNotFoundException("부모 댓글을 찾을 수 없습니다."));
 
             comment.setParent(parentComment);
             comment.setDepth(1);
@@ -112,14 +112,13 @@ public class CommentService {
     }
 
 
-    public Page<CommentResponseDto> getComments(Pageable pageable) {
+    public Page<CommentResponseDto> getComments(CommentRequestDto requestDto, Pageable pageable) {
         Page<Comment> commentPage = commentRepository.findAll(pageable);
         return commentPage.map(comment -> {
-            Post post = postRepository.findById(comment.getPost().getId()).get();
-            CommentResponseDto dto = commentMapper.toResponseDto(comment);
-            dto.setPostDetail(postDetailMapper.toDto(post));
-            log.info("댓글이 작성된 날짜 = {}", dto.getCreatedAt());
-            return dto;
+            Post post = postRepository.findById(requestDto.getPostId()).get();
+            CommentResponseDto responseDto = commentMapper.toResponseDto(comment);
+            responseDto.setPostDetail(postDetailMapper.toDto(post));
+            return responseDto;
         });
     }
 
@@ -137,20 +136,35 @@ public class CommentService {
 
     @Transactional
     public void edit(CommentRequestDto commentRequestDto) {
-        Comment comment = commentRepository.findById(commentRequestDto.getId()).orElse(null);
+        Comment comment = getComment(commentRequestDto);
 
         comment.update(commentRequestDto);
     }
 
     @Transactional
-    public void delete(CommentResponseDto commentResponseDto) {
-        Comment comment = commentRepository.findById(commentResponseDto.getId()).orElse(null);
+    public void delete(CommentRequestDto commentRequestDto) {
+        Comment comment = getComment(commentRequestDto);
+
 
         if (comment.getParent() != null) {
             comment.removeReply(comment);
         } else {
             comment.delete();
         }
+    }
+
+    // 댓글 찾기 메소드
+    private Comment getComment(CommentRequestDto commentRequestDto) {
+        Member member = memberRepository.findByUsername(commentRequestDto.getAuthor()).orElseThrow(() ->
+                new MemberNotFoundException("존재하지 않는 회원 입니다."));
+
+        Comment comment = commentRepository.findById(commentRequestDto.getId()).orElseThrow(()
+                -> new CommentNotFoundException("존재하지 않는 댓글입니다."));
+
+        if(!comment.getAuthorUsername().equals(member.getUsername())) {
+            throw new AccessDeniedException("접근권한이 없습니다.");
+        }
+        return comment;
     }
 
 }

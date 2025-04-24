@@ -109,7 +109,6 @@ public class AuthController {
 
         LoginResponseDto loginMember = memberService.login(dto);
 
-
         log.info("회원 로그인 : {}", loginMember.getUsername());
 
         if (bindingResult.hasErrors()) {
@@ -117,11 +116,11 @@ public class AuthController {
             return "/member/login-form";
         }
 
-        if (loginMember == null) {
-            model.addAttribute("loginDto", dto);
-            model.addAttribute("loginFail", "아이디 또는 비밀번호가 맞지 않습니다.");
-            return "/member/login-form";
-        }
+//        if (loginMember == null) {
+//            model.addAttribute("loginDto", dto);
+//            model.addAttribute("loginFail", "아이디 또는 비밀번호가 맞지 않습니다.");
+//            return "/member/login-form";
+//        }
 
         if(loginMember.getStatus() == MemberStatus.SUSPENDED){
             model.addAttribute("loginDto", dto);

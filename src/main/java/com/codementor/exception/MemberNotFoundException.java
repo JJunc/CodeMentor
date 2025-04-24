@@ -1,4 +1,4 @@
-package com.codementor.member.exceptions;
+package com.codementor.exception;
 
 public class MemberNotFoundException extends RuntimeException {
     public MemberNotFoundException(String message) {

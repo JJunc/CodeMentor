@@ -2,6 +2,7 @@ package com.codementor.admin.controller;
 
 import com.codementor.admin.dto.MemberSuspensionDto;
 import com.codementor.admin.service.AdminService;
+import com.codementor.comment.dto.CommentRequestDto;
 import com.codementor.comment.dto.CommentResponseDto;
 import com.codementor.comment.dto.CommentSearchDto;
 import com.codementor.comment.service.CommentService;
@@ -49,11 +50,8 @@ public class AdminController {
                           @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         LoginResponseDto loginMember = (LoginResponseDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
 
-//        if(loginMember != null || loginMember.getUsername() != "admin") {
-//            return "/";
-//        }
-
         model.addAttribute("members", memberService.getAllMembers(pageable));
+        log.info("members: {}", memberService.getAllMembers(pageable).stream().count());
 
         return "/admin/members";
     }
@@ -123,10 +121,10 @@ public class AdminController {
     }
 
     @GetMapping("/comments")
-    public String comments(@ModelAttribute CommentResponseDto dto,
+    public String comments(@ModelAttribute CommentRequestDto dto,
                            Model model,
                            @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-        Page<CommentResponseDto> commentDtoList = commentService.getComments(pageable);
+        Page<CommentResponseDto> commentDtoList = commentService.getComments(dto,pageable);
 
         model.addAttribute("comments", commentDtoList);
 
@@ -150,7 +148,7 @@ public class AdminController {
     }
 
     @PostMapping("/comment/delete")
-    public String deleteComment(@ModelAttribute CommentResponseDto dto, RedirectAttributes redirectAttributes) {
+    public String deleteComment(@ModelAttribute CommentRequestDto dto, RedirectAttributes redirectAttributes) {
         commentService.delete(dto);
 
         return "redirect:/admin/comments";

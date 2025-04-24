@@ -15,6 +15,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class MemberEditPasswordDto {
+
+    public String username;
+
     @NotBlank(message = "현재 비밀번호를 입력해주세요")
     @Size(min = 8, max = 20, message = "비밀번호는 8~20자여야 합니다.")  // 길이 검사는 별도로 수행
     @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*[!@#$%^*+=-])(?=.*[0-9]).*$",

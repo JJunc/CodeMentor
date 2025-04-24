@@ -4,6 +4,7 @@ import com.codementor.admin.dto.MemberSuspensionDto;
 import com.codementor.admin.dto.mapper.MemberSuspensionMapper;
 import com.codementor.admin.entity.MemberSuspension;
 import com.codementor.admin.repository.MemberSuspensionRepository;
+import com.codementor.exception.MemberNotFoundException;
 import com.codementor.member.entity.Member;
 import com.codementor.member.enums.MemberStatus;
 import com.codementor.member.repository.MemberRepository;
@@ -29,7 +30,7 @@ public class AdminService {
     public void suspenseMember(MemberSuspensionDto dto) {
         // 1. 회원(Member) 조회
         Member member = memberRepository.findById(dto.getMemberId())
-                .orElseThrow(() -> new IllegalStateException("해당 회원이 존재하지 않습니다."));
+                .orElseThrow(() -> new MemberNotFoundException("해당 회원이 존재하지 않습니다."));
 
         log.info("변경할 회원 상태: {}", dto.getMemberStatus().getDescription());
         log.info("정지 회원 번호: {}", member.getId());

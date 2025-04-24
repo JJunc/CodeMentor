@@ -107,16 +107,16 @@
 
 
         function addComment() {
-            const author = loginMember
+            const authorUsername = loginMember
             const content = document.getElementById("commentContent").value;
 
             console.log("게시글 번호 : " + postId);
-            console.log("작성자 : " + author);
+            console.log("작성자 : " + authorUsername);
             console.log("내용 : " + content);
 
             axios.post('/comment/save', {
                 postId: postId,
-                author: author,
+                authorUsername: authorUsername,
                 content: content
             }).then(response => {
                 reloadComment(page);

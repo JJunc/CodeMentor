@@ -35,7 +35,7 @@ public class Comment {
     private Long postId;
 
     @JoinColumn(nullable = false, name = "author_username")
-    private Long username;
+    private String authorUsername;
 
     @Column(name="author_nickname")
     private String nickname;
