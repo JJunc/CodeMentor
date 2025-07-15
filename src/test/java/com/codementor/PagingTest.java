@@ -23,15 +23,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 @Slf4j
-@Import(JPAConfig.class)
 class PagingTest {
 
     private static final Logger log = LoggerFactory.getLogger(PagingTest.class);
     @Autowired
     private PostRepository postRepository;
 
-    @Autowired
-    private PostRepositoryImpl postRepositoryImpl;
 
     @Test
     @DisplayName("마지막 페이지")

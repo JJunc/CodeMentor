@@ -54,7 +54,6 @@ public class PostController {
         model.addAttribute("posts", postService.getPostList(category, pageable));
         long end = System.currentTimeMillis();
 
-
         log.info("실행시간 = {}", (end - start));
         return "/post/posts";
     }
@@ -99,7 +98,7 @@ public class PostController {
 
     @PostMapping("/api/images/upload")
     @ResponseBody
-    public ResponseEntity<?> uploadImage(@RequestParam MultipartFile imageFile) {
+    public ResponseEntity uploadImage(@RequestParam MultipartFile imageFile) {
         if (imageFile.isEmpty()) {
             return ResponseEntity.badRequest().body("이미지 파일이 비어있습니다.");
         }
@@ -110,7 +109,7 @@ public class PostController {
 
     @PostMapping("/api/images/delete-multiple")
     @ResponseBody
-    public ResponseEntity<Void> deleteImages(@RequestBody Map<String, List<String>> request) {
+    public ResponseEntity deleteImages(@RequestBody Map<String, List<String>> request) {
         List<String> filenames = request.get("filenames");
         if (filenames != null) {
             log.info("이미지 삭제 실행");
@@ -141,7 +140,9 @@ public class PostController {
 
     @GetMapping("/edit/{id}")
     public String editPost(@PathVariable Long id, HttpSession session, Model model) {
+
         PostDetailDto dto = postService.getPost(id);
+
         model.addAttribute("dto", dto);
 
         return "/post/post-edit";
@@ -149,9 +150,8 @@ public class PostController {
 
     @PostMapping("/edit/{id}")
     public String updatePost(@ModelAttribute PostUpdateDto dto, HttpSession session, RedirectAttributes redirectAttributes) {
-        postService.updatePost(dto);
 
-        log.info("수정된 게시글 제목 = {}", dto.getTitle());
+        postService.updatePost(dto);
 
         redirectAttributes.addAttribute("category", dto.getCategory());
         redirectAttributes.addAttribute("id", dto.getId());
@@ -161,8 +161,6 @@ public class PostController {
 
     @PostMapping("/delete/{id}")
     public String deletePost(@ModelAttribute PostUpdateDto dto, RedirectAttributes redirectAttributes) {
-        log.info("삭제된 게시글 제목 = {}", dto.getTitle());
-
         postService.deletePost(dto);
 
         redirectAttributes.addAttribute("category", dto.getCategory());

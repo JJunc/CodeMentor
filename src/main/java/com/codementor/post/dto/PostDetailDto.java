@@ -19,7 +19,8 @@ public class PostDetailDto {
     private Long id;
     private String title;
     private String content;
-    private String author;
+    private String authorUsername;
+    private String authorNickname;
     private List<CommentResponseDto> comments;
     private PostCategory category;
     private int views;

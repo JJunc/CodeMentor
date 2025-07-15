@@ -57,6 +57,7 @@ public class MemberService {
         // SearchType에 따라 조건을 다르게 처리
         Page<Member> members;
         log.info("검색조건 {}", memberSearchDto.getSearchType());
+
         switch (memberSearchDto.getSearchType()) {
             case EMAIL:
                 members = memberRepository.findByEmail(memberSearchDto.getKeyword(), pageable);

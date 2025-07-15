@@ -20,16 +20,19 @@ public interface PostRepository extends JpaRepository<Post, Long>  {
     Optional<Post> findById(Long id);
 
     @Query(value = """
-    SELECT new com.codementor.post.dto.PostListDto(p.id, p.title, p.authorUsername, p.authorNickname, p.views, p.category, p.createdAt, p.updatedAt, p.isDeleted)
+    SELECT new com.codementor.post.dto.PostListDto(p.id, p.title, p.authorUsername, p.authorNickname, 
+        p.views, p.category, p.createdAt, p.updatedAt, p.isDeleted)
     FROM Post p
     WHERE p.category = :category
     AND p.isDeleted = 'N'
     ORDER BY p.id DESC
-""")
+    """)
     Page<PostListDto> findByCategory(@Param("category") PostCategory category, Pageable pageable);
 
+    @Query(value = "SELECT count(p.id) FROM Post p WHERE p.category = :category AND p.isDeleted = 'N'")
+    Long countByCategory(@Param("category") PostCategory category);
 
-
+    // 검색
     Page<Post> findByCategoryOrderById(PostCategory category, Pageable pageable);
 
     @Query("SELECT p FROM Post p WHERE p.category = :category AND p.authorUsername = :authorUsername")

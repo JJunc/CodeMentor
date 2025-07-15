@@ -17,12 +17,20 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -35,12 +43,10 @@ public class PostService {
     private final PostDetailMapper postDetailMapper;
     private final PostListMapper postListMapper;
 
-    @Value("${file.upload-dir}")
-    private String uploadDir;
-
     public Page<PostListDto> getPostList(PostCategory category, Pageable pageable) {
         return postRepository.findByCategory(category, pageable);
     }
+
 
     public Page<PostListDto> searchPosts(PostSearchDto dto, Pageable pageable) {
         Page<Post> posts;
@@ -74,6 +80,7 @@ public class PostService {
         return posts.map(postListMapper::toDto);
     }
 
+
     @Transactional
     public void createPost(PostCreateDto dto) {
         Member findMember = memberRepository.findByUsername
@@ -99,7 +106,8 @@ public class PostService {
 
 
     public PostDetailDto getPost(Long id) {
-        return postDetailMapper.toDto(postRepository.findById(id).orElse(null));
+        return postDetailMapper.toDto(postRepository.findById(id).orElseThrow(()
+                -> new PostNotFoundException("해당 게시글이 존재하지 않습니다.")));
     }
 
     @Transactional
@@ -107,6 +115,7 @@ public class PostService {
         Post post = getPost(dto);
         post.update(dto);
     }
+
 
     @Transactional
     public void deletePost(PostUpdateDto dto) {
@@ -120,7 +129,6 @@ public class PostService {
 
         Member author = memberRepository.findByUsername(dto.getAuthorUsername())
                 .orElseThrow(() -> new AccessDeniedException("작성자 정보를 확인할 수 없습니다."));
-        ;
 
         if (!post.getAuthorUsername().equals(author.getUsername())) {
             throw new AccessDeniedException("작성자가 아닙니다.");
