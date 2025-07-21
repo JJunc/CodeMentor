@@ -116,12 +116,6 @@ public class AuthController {
             return "/member/login-form";
         }
 
-//        if (loginMember == null) {
-//            model.addAttribute("loginDto", dto);
-//            model.addAttribute("loginFail", "아이디 또는 비밀번호가 맞지 않습니다.");
-//            return "/member/login-form";
-//        }
-
         if(loginMember.getStatus() == MemberStatus.SUSPENDED){
             model.addAttribute("loginDto", dto);
             model.addAttribute("suspended", "정지된 회원 입니다.");

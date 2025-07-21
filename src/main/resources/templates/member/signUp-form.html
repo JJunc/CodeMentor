@@ -49,6 +49,7 @@
         let isUsernameValid = false;
         let isPasswordValid = false;
         let isEmailValid = false;
+
         async function validateAll(event) {
             event.preventDefault();
 
@@ -99,17 +100,13 @@
                     axios.post("/member/check-nickname", { nickname })
                 ]);
 
-                usernameResult.innerText = usernameRes.data;
-                usernameResult.style.color = "green";
+                usernameResult.innerText = "";
 
-                passwordResult.innerText = passwordRes.data;
-                passwordResult.style.color = "green";
+                passwordResult.innerText = "";
 
-                emailResult.innerText = emailRes.data;
-                emailResult.style.color = "green";
+                emailResult.innerText  = "";
 
-                nicknameResult.innerText = nicknameRes.data;
-                nicknameResult.style.color = "green";
+                nicknameResult.innerText  = "";
 
                 // 모든 검증 통과 시 폼 제출
                 document.getElementById("signUpForm").submit();

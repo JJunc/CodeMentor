@@ -47,6 +47,7 @@ public class PostService {
         return postRepository.findByCategory(category, pageable);
     }
 
+    @Cacheable()
 
     public Page<PostListDto> searchPosts(PostSearchDto dto, Pageable pageable) {
         Page<Post> posts;
