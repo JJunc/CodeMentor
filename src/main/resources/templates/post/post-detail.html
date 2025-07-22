@@ -30,7 +30,7 @@
                 <div class="row justify-content-center">
                     <div class="d-flex justify-content-between">
                         <a th:href="@{/post/{category}(category=${post.category})}" class="btn btn-secondary">목록으로</a>
-                        <div th:if="${session.loginMember != null and  session.loginMember.username == post.author}">
+                        <div th:if="${session.loginMember != null and  session.loginMember.username == post.authorUsername}">
                             <a th:href="@{/post/edit/{id}(id=${post.id})}" class="btn btn-primary">수정</a>
                             <button class="btn btn-danger" onclick="deletePost()">삭제</button>
                         </div>
@@ -46,7 +46,7 @@
             <div class="card-body">
                 <input th:if="${session.loginMember != null}" type="hidden" id="loginMember"
                        th:value="${session.loginMember.username}">
-                <form id="commentForm" th:action="@{/comment/save}" method="post">
+                <form id="commentForm" th:action="@{/comment/create}" method="post">
                     <input type="hidden" id="postId" th:value="${post.id}">
                     <div class="form-group w-100">
                         <label for="commentContent">댓글 내용</label>
@@ -59,7 +59,7 @@
                 </form>
 
                 <!-- 댓글 수정 폼 -->
-                <form id="editCommentForm" style="display: none;">
+                <form id="editCommentForm" style="display: none;" >
                     <input type="hidden" id="editCommentId">
                     <input type="hidden" id="editPostId" th:value="${post.id}">
                     <div class="form-group w-100">
@@ -114,7 +114,7 @@
             console.log("작성자 : " + authorUsername);
             console.log("내용 : " + content);
 
-            axios.post('/comment/save', {
+            axios.post('/comment/create', {
                 postId: postId,
                 authorUsername: authorUsername,
                 content: content

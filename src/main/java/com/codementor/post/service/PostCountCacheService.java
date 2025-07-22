@@ -14,7 +14,6 @@ public class PostCountCacheService {
 
     @Cacheable(value = "postCountByCategory", key = "#category")
     public Long getCountByCategoryCached(PostCategory category) {
-        System.out.println("🔥 캐시 미스 실행!");
 
         return postRepository.countByCategory(category);
     }

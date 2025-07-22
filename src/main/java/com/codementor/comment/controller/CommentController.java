@@ -31,8 +31,8 @@ public class CommentController {
         return new ResponseEntity<>(commentDtoList, HttpStatus.OK);
     }
 
-    @PostMapping("/save")
-    public ResponseEntity saveComment(@RequestBody CommentRequestDto commentRequestDto,
+    @PostMapping("/create")
+    public ResponseEntity createComment(@RequestBody CommentRequestDto commentRequestDto,
                                      @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         log.info("댓글이 작성될 게시판 번호 = {}", commentRequestDto.getPostId());
         Long saveResult = commentService.create(commentRequestDto);
@@ -44,7 +44,7 @@ public class CommentController {
         }
     }
 
-    @PostMapping("/reply/save")
+    @PostMapping("/reply/create")
     public ResponseEntity replyComment(
                                        @RequestBody CommentRequestDto commentRequestDto,
                                        @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {

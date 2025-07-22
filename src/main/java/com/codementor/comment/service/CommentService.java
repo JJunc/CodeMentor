@@ -35,16 +35,15 @@ public class CommentService {
     private final PostDetailMapper postDetailMapper;
 
     public Long create(CommentRequestDto commentRequestDto) {
-        // 댓글을 작성할 게시판과 회원 조회
         Post post = postRepository.findById(commentRequestDto.getPostId())
                 .orElseThrow(() -> new PostNotFoundException("게시글을 찾을 수 없습니다."));
 
-        Member author = memberRepository.findByUsername(commentRequestDto.getAuthor())
+
+        log.info("댓글 작성 닉네임: {}", commentRequestDto.getAuthorUsername());
+
+        Member author = memberRepository.findByUsername(commentRequestDto.getAuthorUsername())
                 .orElseThrow(() -> new MemberNotFoundException("작성자를 찾을 수 없습니다."));
 
-        log.info("댓글 작성 닉네임: {}", author.getNickname());
-
-        // DTO → 엔티티 변환
         Comment comment = commentMapper.requestToEntity(commentRequestDto);
         comment.setNickname(author.getNickname());
 
@@ -58,7 +57,7 @@ public class CommentService {
                 .orElseThrow(() -> new PostNotFoundException("게시글을 찾을 수 없습니다."));
 
         // 작성자 조회 (없으면 예외 발생)
-        Member author = memberRepository.findByUsername(commentRequestDto.getAuthor())
+        Member author = memberRepository.findByUsername(commentRequestDto.getAuthorUsername())
                 .orElseThrow(() -> new MemberNotFoundException("작성자를 찾을 수 없습니다."));
 
         // DTO → 엔티티 변환
@@ -155,7 +154,7 @@ public class CommentService {
 
     // 댓글 찾기 메소드
     private Comment getComment(CommentRequestDto commentRequestDto) {
-        Member member = memberRepository.findByUsername(commentRequestDto.getAuthor()).orElseThrow(() ->
+        Member member = memberRepository.findByUsername(commentRequestDto.getAuthorUsername()).orElseThrow(() ->
                 new MemberNotFoundException("존재하지 않는 회원 입니다."));
 
         Comment comment = commentRepository.findById(commentRequestDto.getId()).orElseThrow(()
