@@ -85,7 +85,7 @@ public class AdminController {
         }
 
         model.addAttribute("category", category);
-        model.addAttribute("posts", postService.getPostList(category, pageable));
+        model.addAttribute("posts", postService.getPostsByCategory(category, pageable));
         return "/admin/posts";
     }
 

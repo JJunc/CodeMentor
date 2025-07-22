@@ -51,7 +51,7 @@ public class PostController {
         log.info("게시판 카테고리 = {}", category);
         log.info("페이지 넘버 = {}", pageable.getPageNumber());
         model.addAttribute("category", category);
-        model.addAttribute("posts", postService.getPostList(category, pageable));
+        model.addAttribute("posts", postService.getPostsByCategory(category, pageable));
         long end = System.currentTimeMillis();
 
         log.info("실행시간 = {}", (end - start));

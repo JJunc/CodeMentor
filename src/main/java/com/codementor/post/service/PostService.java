@@ -42,12 +42,21 @@ public class PostService {
     private final PostCreateMapper postCreateMapper;
     private final PostDetailMapper postDetailMapper;
     private final PostListMapper postListMapper;
+    private final PostCountCacheService postCountCacheService;
 
-    public Page<PostListDto> getPostList(PostCategory category, Pageable pageable) {
-        return postRepository.findByCategory(category, pageable);
+//    public List<PostListDto> getPostList(PostCategory category, Pageable pageable) {
+//        return postRepository.findByCategory(category, pageable);
+//    }
+
+    public Page<PostListDto> getPostsByCategory(PostCategory category, Pageable pageable) {
+        Long totalCount = postCountCacheService.getCountByCategoryCached(category);
+        int limit = pageable.getPageSize();
+        int offset = (int) pageable.getOffset();
+        List<PostListDto> posts = postRepository.findByCategory(category, limit, offset);
+        return new PageImpl<>(posts, pageable, totalCount);
     }
 
-    @Cacheable()
+
 
     public Page<PostListDto> searchPosts(PostSearchDto dto, Pageable pageable) {
         Page<Post> posts;

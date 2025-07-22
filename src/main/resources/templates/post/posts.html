@@ -32,8 +32,8 @@
             <input type="text" name="keyword" id="keyword" required>
             <select name="category" id="category">
                 <option value="FREE" th:selected="${category == 'FREE'}">자유게시판</option>
-                <option value="BACKEND" th:selected="${category == 'BACKEND'}">백엔드</option>
                 <option value="FRONTEND" th:selected="${category == 'FRONTEND'}">프론트엔드</option>
+                <option value="BACKEND" th:selected="${category == 'BACKEND'}">백엔드</option>
                 <option value="JOB" th:selected="${category == 'JOB'}">취업</option>
             </select>
             <select name="searchType" id="search">

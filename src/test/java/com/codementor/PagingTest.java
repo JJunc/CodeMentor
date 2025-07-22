@@ -18,6 +18,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
@@ -38,10 +40,10 @@ class PagingTest {
         PageRequest pageRequest = PageRequest.of(99999, 10);
 
         // when
-        Page<PostListDto> page = postRepository.findByCategory(category, pageRequest);
+//        List<PostListDto> posts = postRepository.findByCategory(category, pageRequest);
 
         // then
-        assertThat(page.getContent()).hasSize(10);
+        assertThat(posts).hasSize(10);
     }
 
     @Test
