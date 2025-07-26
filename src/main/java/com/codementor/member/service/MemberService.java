@@ -218,7 +218,7 @@ public class MemberService {
 
     @Transactional
     public void updateMemberRole(MemberRoleDto dto) {
-        Member member = memberRepository.findByUsername(dto.getNickname()).orElseThrow(()
+        Member member = memberRepository.findByUsername(dto.getUsername()).orElseThrow(()
                 -> new MemberNotFoundException("존재하지 않는 회원입니다."));
 
         String nickname = dto.getNickname();
@@ -234,6 +234,18 @@ public class MemberService {
         }
 
         member.updateRole(dto);
+    }
+
+    @Transactional
+    public void deleteMember(String username, String password) {
+        Member member = memberRepository.findByUsername(username).orElseThrow(()
+                -> new MemberNotFoundException("존재하지 않는 회원입니다."));
+
+        if (!passwordEncoder.matches(password, member.getPassword())) {
+            throw new InvalidPasswordException("비밀번호가 일치하지 않습니다.");
+        }
+
+        member.deletedMember();
     }
 
 

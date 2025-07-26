@@ -130,10 +130,22 @@
                             <div class="col fw-semibold"><span
                                     th:text="${#temporals.format(member.createdAt, 'yyyy-MM-dd')}"></span></div>
                         </div>
+                        <div class="row m-3">
+                            <div class="text-end"><button class="btn btn-danger" id="btnDelete">회원 탈퇴</button></div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
+
+
+    <div id="deleteModal" style="display:none; position:fixed; top:30%; left:50%; transform:translate(-50%, -50%); background:#fff; padding:20px; border:1px solid #ccc;">
+        <p>정말 탈퇴하시겠습니까? 비밀번호를 입력해주세요.</p>
+        <input class="form-control" type="password" id="DeletePasswordInput" placeholder="비밀번호 입력" />
+        <br><br>
+        <button class="btn btn-primary" id="confirmDelete">확인</button>
+        <button class="btn btn-primary" id="cancelDelete">취소</button>
     </div>
     <script>
         const loginMemebr =
@@ -374,6 +386,43 @@
             document.querySelectorAll('p').forEach(p => p.text = "");
         }
 
+
+        // 회원 탈퇴
+        const btnDelete = document.getElementById('btnDelete');
+        const modal = document.getElementById('deleteModal');
+        const confirmBtn = document.getElementById('confirmDelete');
+        const cancelBtn = document.getElementById('cancelDelete');
+        const deletePasswordInput = document.getElementById('DeletePasswordInput');
+
+        btnDelete.addEventListener('click', () => {
+            modal.style.display = 'block';
+            deletePasswordInput.value = '';
+        });
+
+        cancelBtn.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        confirmBtn.addEventListener('click', () => {
+            const password = deletePasswordInput.value.trim();
+            if (!password) {
+                alert('비밀번호를 입력해주세요.');
+            }
+
+            axios.post('/my/api/delete', { password })
+                .then(response => {
+                    alert('탈퇴 처리 되었습니다.');
+
+                    window.location.href = '/';
+                })
+                .catch(error => {
+                    if (error.response && error.response.status === 401) {
+                        alert('비밀번호가 올바르지 않습니다.');
+                    } else {
+                        alert('서버 오류가 발생했습니다.');
+                    }
+                });
+        });
     </script>
 </th:block>
 </html>

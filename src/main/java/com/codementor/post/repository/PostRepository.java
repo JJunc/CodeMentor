@@ -55,34 +55,5 @@ public interface PostRepository extends JpaRepository<Post, Long>  {
     @Query("UPDATE Post p SET p.authorNickname = :newNickname WHERE p.authorUsername = :username")
     void updateAuthorNickname(@Param("username") String username, @Param("newNickname") String newNickname);
 
-    @Query("""
-SELECT p FROM Post p
-WHERE p.category = :category
-  AND p.isDeleted = 'N'
-  AND  p.id < :cursorId
-ORDER BY  p.id DESC
-""")
-    List<Post> findNextPage(
-            @Param("category") PostCategory category,
-            @Param("cursorId") Long cursorId,
-            @Param("limit") int limit
-    );
-
-    @Query(value = """
-SELECT  p.id, p.authorNickname, p.title, p.views
-FROM Post p
-WHERE p.category = :category
-  AND p.isDeleted = 'N'
-ORDER BY p.id asc
-""")
-    Page<Post> findCoveringIndexPosts(
-            @Param("category") PostCategory category,
-            Pageable pageable
-    );
-
-
-    Optional<Post> findTopByCategoryAndIsDeletedOrderByCreatedAtDescIdDesc(PostCategory category, String isDeleted);
-
-
 
 }

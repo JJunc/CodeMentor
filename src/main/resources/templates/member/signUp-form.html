@@ -110,7 +110,8 @@
 
                 // 모든 검증 통과 시 폼 제출
                 document.getElementById("signUpForm").submit();
-
+                alert("회원가입이 완료 됐습니다.");
+                return;
             } catch (error) {
                 const errRes = error.response?.data || "오류 발생";
                 const url = error.config.url;

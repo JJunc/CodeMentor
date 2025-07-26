@@ -65,10 +65,10 @@ public class AuthController {
         boolean check = memberService.checkEmail(dto);
 
         if (check) {
-            return ResponseEntity.status(HttpStatus.CONFLICT).body("이미 사용 중인 이메일입니다.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("이미 사용 중인 닉네임입니다.");
         }
 
-        return ResponseEntity.ok("사용 가능한 이메일입니다.");
+        return ResponseEntity.ok("사용 가능한 닉네임입니다.");
     }
 
     @PostMapping("/check-password")
@@ -136,7 +136,7 @@ public class AuthController {
         return "redirect:/";
     }
 
-    @GetMapping("/logout")
+    @PostMapping("/logout")
     public String logout(HttpServletRequest request) {
 
         HttpSession session = request.getSession(false);

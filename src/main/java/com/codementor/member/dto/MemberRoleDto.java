@@ -14,5 +14,6 @@ public class MemberRoleDto {
 
     private Long id;
     private String nickname;
+    private String username;
     private MemberRole memberRole;
 }

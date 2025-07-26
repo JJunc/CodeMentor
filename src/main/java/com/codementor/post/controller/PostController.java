@@ -48,8 +48,6 @@ public class PostController {
             return "redirect:/post/FREE";
         }
 
-        log.info("게시판 카테고리 = {}", category);
-        log.info("페이지 넘버 = {}", pageable.getPageNumber());
         model.addAttribute("category", category);
         model.addAttribute("posts", postService.getPostsByCategory(category, pageable));
         long end = System.currentTimeMillis();
@@ -65,11 +63,7 @@ public class PostController {
         // 회원 검색 결과
         Page<PostListDto> result = postService.searchPosts(searchDto, pageable);
 
-        log.info("검색 카테고리 = {}", searchDto.getCategory());
-        log.info("검색 타입 = {}", searchDto.getSearchType());
-
         if (result.isEmpty()) {
-            log.info("검색 결과 존재하지 않음");
             redirectAttributes.addFlashAttribute("noResults", true); // 검색 결과 없음 플래그 추가
             return "redirect:/post/" + searchDto.getCategory(); // 다시 목록 페이지로 이동
         }

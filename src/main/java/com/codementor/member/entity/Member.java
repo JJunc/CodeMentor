@@ -25,7 +25,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class Member {
 
-    // 사용자가 아이디를 아이디를 변경하는 경우가 존재하기 때문에 자동키 사용
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -58,6 +57,9 @@ public class Member {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    @Column(nullable = false)
+    private Boolean deleted = false;
+
     public void updateNickname(MemberEditNicknameDto dto) {
         this.nickname = dto.getNickname();
     }
@@ -75,6 +77,10 @@ public class Member {
     public void updateRole(MemberRoleDto dto) {
         this.nickname = dto.getNickname();
         this.role = dto.getMemberRole();
+    }
+
+    public void deletedMember(){
+        this.deleted = true;
     }
 
 

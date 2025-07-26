@@ -1,6 +1,7 @@
 package com.codementor.member.controller;
 
 import com.codementor.comment.service.CommentService;
+import com.codementor.exception.InvalidPasswordException;
 import com.codementor.member.dto.*;
 import com.codementor.member.enums.CheckPassword;
 import com.codementor.member.enums.SessionConst;
@@ -62,7 +63,6 @@ public class MyPageController {
 
         model.addAttribute("category", category);
         model.addAttribute("posts", memberService.getMyPostList(loginMember.getUsername(), category, pageable));
-        log.info("posts = {}", memberService.getMyPostList(loginMember.getUsername(), category, pageable));
 
         return "/member/mypage-posts";
     }
@@ -215,5 +215,19 @@ public class MyPageController {
         response.setData(dto.getPassword());
         response.setMessage(CheckPassword.SUCCESS.getMessage());
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/api/delete")
+    @ResponseBody
+    public ResponseEntity deleteMember(HttpSession session, @RequestBody MemberDeleteDto dto) {
+        LoginResponseDto loginMember = (LoginResponseDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
+        log.info("비밀번호 입력: {}", dto.getPassword());
+        try {
+            memberService.deleteMember(loginMember.getUsername(), dto.getPassword());
+            session.invalidate();
+            return ResponseEntity.ok().build();
+        } catch (InvalidPasswordException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        }
     }
 }
