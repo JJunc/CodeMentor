@@ -117,13 +117,16 @@ public class MemberService {
         Member member = memberRepository.findByUsername(dto.getUsername())
                 .orElseThrow(() -> new LoginFailedException("아이디 또는 비밀번호가 틀렸습니다."));
 
+        if(member.getDeleted()) {
+            throw new LoginFailedException("해당 계정은 탈퇴 처리되어 로그인할 수 없습니다.");
+        }
+
         if (!passwordEncoder.matches(dto.getPassword(), member.getPassword())) {
             throw new LoginFailedException("비밀번호가 틀렸습니다.");
         }
 
         log.info("member role = {}", member.getRole());
         LoginResponseDto loginResponseDto = new LoginResponseDto();
-        loginResponseDto.setUsername(member.getUsername());
         loginResponseDto.setUsername(member.getUsername());
         loginResponseDto.setRole(member.getRole());
 
