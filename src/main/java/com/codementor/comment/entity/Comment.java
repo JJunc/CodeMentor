@@ -38,7 +38,7 @@ public class Comment {
     private String authorUsername;
 
     @Column(name="author_nickname")
-    private String nickname;
+    private String authorNickname;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")

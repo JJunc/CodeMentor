@@ -26,8 +26,6 @@ public class CommentController {
                                          @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         Page<CommentResponseDto> commentDtoList = commentService.getComments(postId, pageable);
 
-        log.info("총 댓글 갯수 = {}", commentDtoList.getTotalElements());
-        log.info("게시판 번호 = {}", postId);
         return new ResponseEntity<>(commentDtoList, HttpStatus.OK);
     }
 

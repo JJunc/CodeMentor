@@ -19,8 +19,8 @@ public class CommentResponseDto {
     private Long id;
     private Long parentId;
     private Long postId;
-    private String author;
-    private String nickname;
+    private String authorUsername;
+    private String authorNickname;
     private PostDetailDto postDetail;
     private String content;
     private String isDeleted = "N";

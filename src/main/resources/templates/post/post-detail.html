@@ -170,14 +170,14 @@
                 const formattedDate = formatDate(comment.createdAt);
 
                 // 로그인한 사용자가 댓글 작성자인 경우에만 버튼 추가
-                const actionButtons = loginMember === comment.author
+                const actionButtons = loginMember === comment.authorUsername
                     ? `
         <div class="text-end">
             <button type="button" class="btn btn-primary btn-sm" onclick="showEditForm('${comment.id}', '${comment.content}')">수정</button>
             <button type="button" class="btn btn-danger btn-sm" onclick="deleteComment(${comment.id}, ${comment.postId})">삭제</button>
         </div>` : "";
 
-                const replyButton = loginMember === comment.author
+                const replyButton = loginMember === comment.authorUsername
                     ? `
         <div>
             <button type="button" class="btn btn-primary" onClick="showReplyForm(${comment.id})">답글</button>
@@ -189,7 +189,7 @@
             <div class="media mb-3 p-3 border rounded shadow-sm">
                 <div class="media-body">
                     <div class="d-flex justify-content-between">
-                        <span class="mt-0 font-weight-bold text-primary h5">${comment.nickname}</span>
+                        <span class="mt-0 font-weight-bold text-primary h5">${comment.authorNickname}</span>
                         <span>작성일: ${formattedDate}</span>
                     </div>
                     <p class="mb-1 text-dark" id="commentContent-${comment.id}">${comment.content}</p>

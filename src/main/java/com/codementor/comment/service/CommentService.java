@@ -45,7 +45,7 @@ public class CommentService {
                 .orElseThrow(() -> new MemberNotFoundException("작성자를 찾을 수 없습니다."));
 
         Comment comment = commentMapper.requestToEntity(commentRequestDto);
-        comment.setNickname(author.getNickname());
+        comment.setAuthorNickname(author.getNickname());
 
         return commentRepository.save(comment).getId();
     }
@@ -62,7 +62,7 @@ public class CommentService {
 
         // DTO → 엔티티 변환
         Comment comment = commentMapper.requestToEntity(commentRequestDto);
-        comment.setNickname(author.getNickname());
+        comment.setAuthorNickname(author.getNickname());
 
         // 부모 댓글이 존재하면 설정
         if (commentRequestDto.getParentId() != null) {

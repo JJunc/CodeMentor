@@ -2,6 +2,7 @@ package com.codementor.post.service;
 
 import com.codementor.post.enums.PostCategory;
 import com.codementor.post.repository.PostRepository;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -14,7 +15,6 @@ public class PostCountCacheService {
 
     @Cacheable(value = "postCountByCategory", key = "#category")
     public Long getCountByCategoryCached(PostCategory category) {
-
         return postRepository.countByCategory(category);
     }
 
