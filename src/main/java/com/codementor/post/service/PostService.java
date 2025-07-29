@@ -111,7 +111,7 @@ public class PostService {
     @Transactional
     public void updateViews(PostDetailDto dto) {
         Post post = postRepository.findById(dto.getId()).orElseThrow(() -> new PostNotFoundException("해당 게시글이 존재하지 않습니다."));
-        post.increaseViews();
+        postRepository.incrementViewCount(dto.getId());
     }
 
 
