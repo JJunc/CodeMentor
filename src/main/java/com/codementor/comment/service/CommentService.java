@@ -144,12 +144,7 @@ public class CommentService {
     public void delete(CommentRequestDto commentRequestDto) {
         Comment comment = getComment(commentRequestDto);
 
-
-        if (comment.getParent() != null) {
-            comment.removeReply(comment);
-        } else {
-            comment.delete();
-        }
+        commentRepository.delete(comment);
     }
 
     // 댓글 찾기 메소드

@@ -128,12 +128,25 @@ public class PostService {
 
 
     @Transactional
-    public void deletePost(PostUpdateDto dto) {
+    public void deletePost(PostDeleteDto dto) {
         Post post = getPost(dto);
-        post.setDeleted("Y");
+        postRepository.delete(post);
     }
 
     // 게시글 찾기 메소드
+    private Post getPost(PostDeleteDto dto) {
+        Post post = postRepository.findById(dto.getId()).orElseThrow(() -> new PostNotFoundException("해당 게시글이 존재하지 않습니다."));
+
+        Member author = memberRepository.findByUsername(dto.getAuthorUsername())
+                .orElseThrow(() -> new AccessDeniedException("작성자 정보를 확인할 수 없습니다."));
+
+        if (!post.getAuthorUsername().equals(author.getUsername())) {
+            throw new AccessDeniedException("작성자가 아닙니다.");
+        }
+
+        return post;
+    }
+
     private Post getPost(PostUpdateDto dto) {
         Post post = postRepository.findById(dto.getId()).orElseThrow(() -> new PostNotFoundException("해당 게시글이 존재하지 않습니다."));
 

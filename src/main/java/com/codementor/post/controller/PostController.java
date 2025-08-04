@@ -75,8 +75,8 @@ public class PostController {
 
 
     @GetMapping("/create")
-    public String createPostForm(Model model) {
-        model.addAttribute("dto", new PostCreateDto());
+    public String createPostForm(@ModelAttribute PostCreateDto postCreateDto, Model model) {
+        model.addAttribute("dto", postCreateDto);
         return "/post/post-create";
     }
 
@@ -126,7 +126,10 @@ public class PostController {
         // 조회수 증가
         postService.updateViews(post);
 
+        log.info("게시글 번호 = {}", post.getId());
+
         model.addAttribute("post", post);
+        model.addAttribute("category", post.getCategory());
         model.addAttribute("commentDto", new CommentResponseDto());
 
         return "/post/post-detail";
@@ -153,8 +156,9 @@ public class PostController {
         return "redirect:/post/{category}/{id}";
     }
 
-    @PostMapping("/delete/{id}")
-    public String deletePost(@ModelAttribute PostUpdateDto dto, RedirectAttributes redirectAttributes) {
+    @PostMapping("/delete")
+    public String deletePost(@RequestBody PostDeleteDto dto, RedirectAttributes redirectAttributes) {
+        log.info("게시글 아이디 = {}", dto.getId());
         postService.deletePost(dto);
 
         redirectAttributes.addAttribute("category", dto.getCategory());

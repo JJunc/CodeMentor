@@ -10,6 +10,7 @@ import com.codementor.member.dto.LoginResponseDto;
 import com.codementor.member.dto.MemberRoleDto;
 import com.codementor.member.enums.SessionConst;
 import com.codementor.member.service.MemberService;
+import com.codementor.post.dto.PostDeleteDto;
 import com.codementor.post.dto.PostListDto;
 import com.codementor.post.dto.PostSearchDto;
 import com.codementor.post.dto.PostUpdateDto;
@@ -109,7 +110,7 @@ public class AdminController {
     }
 
     @PostMapping("/post/delete")
-    public String deletePost(@ModelAttribute PostUpdateDto dto, RedirectAttributes redirectAttributes) {
+    public String deletePost(@ModelAttribute PostDeleteDto dto, RedirectAttributes redirectAttributes) {
         postService.deletePost(dto);
 
         log.info("삭제 될 게시글 번호 = {}", dto.getId());

@@ -5,6 +5,8 @@ import com.codementor.comment.dto.CommentResponseDto;
 import com.codementor.comment.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -17,6 +19,8 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Slf4j
 @RequestMapping("/comment")
+@SQLDelete(sql = "UPDATE comment SET is_deleted = true WHERE id = ?")
+@SQLRestriction("is_deleted = false")
 public class CommentController {
 
     private final CommentService commentService;

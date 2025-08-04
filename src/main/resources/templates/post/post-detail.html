@@ -32,7 +32,7 @@
                         <a th:href="@{/post/{category}(category=${post.category})}" class="btn btn-secondary">목록으로</a>
                         <div th:if="${session.loginMember != null and  session.loginMember.username == post.authorUsername}">
                             <a th:href="@{/post/edit/{id}(id=${post.id})}" class="btn btn-primary">수정</a>
-                            <button class="btn btn-danger" onclick="deletePost()">삭제</button>
+                            <button class="btn btn-danger" th:data-post-id="${post.id}">삭제</button>
                         </div>
                     </div>
                 </div>
@@ -48,6 +48,7 @@
                        th:value="${session.loginMember.username}">
                 <form id="commentForm" th:action="@{/comment/create}" method="post">
                     <input type="hidden" id="postId" th:value="${post.id}">
+                    <input type="hidden" id="category" th:value="${category}">
                     <div class="form-group w-100">
                         <label for="commentContent">댓글 내용</label>
                         <textarea class="form-control mb-3" id="commentContent" name="content" rows="3"
@@ -91,11 +92,45 @@
         </div>
     </div>
     <script>
-
-        // 로그인한 사용자 정보 가져오기 (hidden input 사용)
         const loginMemberInput = document.getElementById("loginMember");
         const loginMember = loginMemberInput ? loginMemberInput.value : null;
         const postId = document.getElementById("postId").value;
+        const category = document.getElementById("category").value;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // 모든 .btn-danger 클래스를 가진 버튼을 선택
+            const deleteButtons = document.querySelectorAll('.btn-danger');
+
+            deleteButtons.forEach(button => {
+                // 각 버튼에 클릭 이벤트 리스너를 추가
+                button.addEventListener('click', function() {
+                    // 클릭된 버튼의 'data-post-id' 속성 값을 가져옴
+                    console.log(postId)
+                    if (postId) {
+                        // 가져온 postId를 deletePost 함수에 전달
+                        deletePost(postId);
+                    }
+                });
+            });
+        });
+
+
+
+        function deletePost() {
+            console.log(postId)
+            if (confirm("정말 삭제하시겠습니까?")) {
+                axios.post('/post/delete', { id: postId, authorUsername: loginMember, category: category})
+                        .then(function (response) {
+                        alert("삭제되었습니다.");
+                            window.location.href = '/post/' + category;
+                    })
+                    .catch(function (error) {
+                        alert("삭제에 실패했습니다.");
+                        console.error('Error:', error);
+                    });
+            }
+        }
+
 
         let currentPage = 0;
         let page = 0;

@@ -17,14 +17,9 @@ import java.nio.file.AccessDeniedException;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler({MemberNotFoundException.class, PostNotFoundException.class, CommentNotFoundException.class, IllegalStateException.class})
-    public String handleMemberNotFoundException(MemberNotFoundException e) {
+    public String handleMemberNotFoundException(Exception e) {
         return "/error/404";
     }
-
-//    @ExceptionHandler(InvalidPasswordException.class)
-//    public ResponseEntity<String> handleInvalidPassword(InvalidPasswordException e) {
-//        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-//    }
 
     @ExceptionHandler(LoginFailedException.class)
     public String handleLoginFailed(LoginFailedException e, HttpServletRequest request, Model model) {

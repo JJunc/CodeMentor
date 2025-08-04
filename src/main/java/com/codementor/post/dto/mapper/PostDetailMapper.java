@@ -10,7 +10,6 @@ import org.mapstruct.factory.Mappers;
 @Mapper(componentModel = "spring")
 public interface PostDetailMapper {
 
-    PostDetailMapper INSTANCE = Mappers.getMapper(PostDetailMapper.class);
 
     PostDetailDto toDto(Post post);
 
