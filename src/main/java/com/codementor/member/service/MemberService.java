@@ -117,7 +117,7 @@ public class MemberService {
         Member member = memberRepository.findByUsername(dto.getUsername())
                 .orElseThrow(() -> new LoginFailedException("아이디 또는 비밀번호가 틀렸습니다."));
 
-        if(member.getDeleted()) {
+        if(member.getIsDeleted()) {
             throw new LoginFailedException("해당 계정은 탈퇴 처리되어 로그인할 수 없습니다.");
         }
 
@@ -248,7 +248,7 @@ public class MemberService {
             throw new InvalidPasswordException("비밀번호가 일치하지 않습니다.");
         }
 
-        member.deletedMember();
+        memberRepository.delete(member);
     }
 
 

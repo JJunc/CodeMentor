@@ -85,7 +85,7 @@ public class AuthController {
     }
 
     @PostMapping("/signUp")
-    public String signUp(@Valid @ModelAttribute("signUpDto") SignUpRequestDto dto, BindingResult bindingResult, Model model,RedirectAttributes redirectAttributes) {
+    public String signUp(@Validated @ModelAttribute("signUpDto") SignUpRequestDto dto, BindingResult bindingResult, Model model,RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("signUpDto", dto);
@@ -104,7 +104,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String login(@Valid @ModelAttribute("loginDto") LoginRequestDto dto,
+    public String login(@Validated @ModelAttribute("loginDto") LoginRequestDto dto,
                         BindingResult bindingResult, Model model, HttpServletRequest request) {
 
         LoginResponseDto loginMember = memberService.login(dto);

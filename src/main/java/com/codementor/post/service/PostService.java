@@ -130,7 +130,7 @@ public class PostService {
     @Transactional
     public void deletePost(PostUpdateDto dto) {
         Post post = getPost(dto);
-        post.setIsDeleted("Y");
+        post.setDeleted("Y");
     }
 
     // 게시글 찾기 메소드

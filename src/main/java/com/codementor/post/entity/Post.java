@@ -52,7 +52,7 @@ public class Post {
     private PostCategory category;
 
     @Column(nullable = false, length = 1)
-    private String isDeleted = "N";
+    private Boolean isDeleted = false;
 
     @CreatedDate
     private LocalDateTime createdAt;

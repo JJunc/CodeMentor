@@ -57,7 +57,8 @@ public class CommentController {
         }
     }
 
-    @PostMapping("/edit")
+    @PostMapping("/api/edit")
+    @ResponseBody
     public ResponseEntity editComment(@RequestBody CommentRequestDto commentRequestDto,
                                       @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         commentService.edit(commentRequestDto);
@@ -65,7 +66,8 @@ public class CommentController {
         return new ResponseEntity<>(commentDtoList, HttpStatus.OK);
     }
 
-    @PostMapping("/delete")
+    @PostMapping("/api/delete")
+    @ResponseBody
     public ResponseEntity deleteComment(@RequestBody CommentRequestDto commentRequestDto,
                                         @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
         commentService.delete(commentRequestDto);

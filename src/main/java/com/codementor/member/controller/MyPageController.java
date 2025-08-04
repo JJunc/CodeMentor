@@ -21,6 +21,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -82,7 +83,7 @@ public class MyPageController {
     @PostMapping("/edit/nickname")
     @ResponseBody
     public ResponseEntity editNickname(HttpSession session
-            , @Valid @RequestBody MemberEditNicknameDto dto
+            , @Validated @RequestBody MemberEditNicknameDto dto
             , BindingResult bindingResult) {
 
         LoginResponseDto loginMember = (LoginResponseDto) session.getAttribute(SessionConst.LOGIN_MEMBER);
@@ -112,7 +113,7 @@ public class MyPageController {
     @ResponseBody
     public ResponseEntity editEmail(
             HttpSession session,
-            @Valid @RequestBody MemberEmailUpdateDto dto,
+            @Validated @RequestBody MemberEmailUpdateDto dto,
             BindingResult bindingResult) {
         log.info("입력한 이메일 ={}", dto.getEmail());
 

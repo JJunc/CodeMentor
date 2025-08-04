@@ -21,10 +21,10 @@ public interface PostRepository extends JpaRepository<Post, Long>  {
 
     @Query(value = """
     SELECT new com.codementor.post.dto.PostListDto(p.id, p.title, p.authorUsername, p.authorNickname,
-        p.views, p.category, p.createdAt, p.updatedAt, p.isDeleted)
+        p.views, p.category, p.createdAt, p.updatedAt, p.deleted)
     FROM Post p
     WHERE p.category = :category
-    AND p.isDeleted = 'N'
+    AND p.deleted = 'N'
     ORDER BY p.id DESC
     LIMIT :limit OFFSET :offset
     """)
@@ -33,7 +33,7 @@ public interface PostRepository extends JpaRepository<Post, Long>  {
                                            @Param("offset") int offset);
 
 
-    @Query("SELECT COUNT(p) FROM Post p WHERE p.category = :category AND p.isDeleted = 'N'")
+    @Query("SELECT COUNT(p) FROM Post p WHERE p.category = :category AND p.deleted = 'N'")
     Long countByCategory(@Param("category") PostCategory category);
 
     // 검색

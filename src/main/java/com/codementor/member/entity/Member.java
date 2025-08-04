@@ -1,7 +1,5 @@
 package com.codementor.member.entity;
 
-import com.codementor.admin.dto.MemberUpdateDto;
-import com.codementor.admin.entity.MemberSuspension;
 import com.codementor.member.dto.MemberEditNicknameDto;
 import com.codementor.member.dto.MemberEditPasswordDto;
 import com.codementor.member.dto.MemberEmailUpdateDto;
@@ -13,6 +11,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
@@ -23,6 +23,8 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@SQLDelete(sql = "UPDATE Member SET is_deleted = true WHERE id = ?")
+@SQLRestriction("is_deleted = false")
 public class Member {
 
     @Id
@@ -58,7 +60,7 @@ public class Member {
     private LocalDateTime updatedAt;
 
     @Column(nullable = false)
-    private Boolean deleted = false;
+    private Boolean isDeleted = false;
 
     public void updateNickname(MemberEditNicknameDto dto) {
         this.nickname = dto.getNickname();
@@ -79,9 +81,6 @@ public class Member {
         this.role = dto.getMemberRole();
     }
 
-    public void deletedMember(){
-        this.deleted = true;
-    }
 
 
 }
