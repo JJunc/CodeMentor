@@ -13,6 +13,7 @@ import com.codementor.post.entity.Post;
 import com.codementor.post.enums.PostCategory;
 import com.codementor.post.repository.PostRepository;
 
+import com.codementor.post.repository.PostRepositoryImpl;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,7 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.access.AccessDeniedException;
@@ -38,6 +40,7 @@ import java.util.List;
 public class PostService {
 
     private final PostRepository postRepository;
+    private final PostRepositoryImpl postRepositoryImpl;
     private final MemberRepository memberRepository;
     private final PostCreateMapper postCreateMapper;
     private final PostDetailMapper postDetailMapper;
@@ -52,44 +55,45 @@ public class PostService {
         Long totalCount = postCountCacheService.getCountByCategoryCached(category);
         int limit = pageable.getPageSize();
         int offset = (int) pageable.getOffset();
-        List<PostListDto> posts = postRepository.findByCategory(category, limit, offset);
+        log.info("category= {} ", category);
+        List<PostListDto> posts = postRepositoryImpl.findByCategory(category, limit, offset);
         return new PageImpl<>(posts, pageable, totalCount);
     }
 
 
 
     public Page<PostListDto> searchPosts(PostSearchDto dto, Pageable pageable) {
-        Page<Post> posts;
-        log.info("검색조건: {}, 카테고리: {}", dto.getSearchType(), dto.getCategory());
+        Page<Post> posts = null;
+        log.info("검색조건: {}, 카테고리: {}, 검색 키워드: {}" , dto.getSearchType(), dto.getCategory(), dto.getKeyword());
 
-        // 검색 조건이 없는 경우 전체 조회
-        if (dto.getSearchType() == null || dto.getKeyword() == null || dto.getKeyword().isEmpty()) {
-            posts = postRepository.findByCategoryOrderById(dto.getCategory(), pageable);
-        } else {
-            // SearchType에 따라 조건을 다르게 처리
+        pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+
             switch (dto.getSearchType()) {
                 case TITLE:
                     log.info("제목 검색 실행");
                     posts = postRepository.findByTitleAndCategory(dto.getKeyword(), dto.getCategory(), pageable);
+                    for(Post post : posts){
+                        log.info("게시판 제목: {}", post.getTitle());
+                    }
+                    log.info("검색된 게시글 수: {}", posts.getTotalElements());
                     break;
-                case CONTENT:
-                    posts = postRepository.findByContentAndCategory(dto.getKeyword(), dto.getCategory(), pageable);
-                    break;
-                case TITLE_AND_CONTENT:
-                    posts = postRepository.findByTitleOrContentAndCategory(dto.getKeyword(), dto.getKeyword(), dto.getCategory(), pageable);
-                    break;
-                case AUTHOR:
-                    posts = postRepository.findByAuthorAndCategory(dto.getKeyword(), dto.getCategory(), pageable);
-                    break;
-                default:
-                    posts = postRepository.findAll(pageable);  // 기본적으로 전체 검색
-                    break;
+//                case CONTENT:
+//                    posts = postRepository.findByContentAndCategory(dto.getKeyword(), dto.getCategory(), pageable);
+//                    break;
+//                case TITLE_AND_CONTENT:
+//                    posts = postRepository.findByTitleOrContentAndCategory(dto.getKeyword(), dto.getKeyword(), dto.getCategory(), pageable);
+//                    break;
+//                case AUTHOR:
+//                    posts = postRepository.findByAuthorAndCategory(dto.getKeyword(), dto.getCategory(), pageable);
+//                    break;
             }
-        }
 
-        return posts.map(postListMapper::toDto);
+        return  posts.map(postListMapper::toDto);
     }
 
+//    public Page<PostListDto> searchPosts(PostSearchDto searchDto, Pageable pageable) {
+//        return postRepository.searchByTitleAndCategory(searchDto.getKeyword(), searchDto.getCategory(), pageable);
+//    }
 
     @Transactional
     public void createPost(PostCreateDto dto) {

@@ -17,19 +17,17 @@ public class PostListDto {
 
     private Long id;
     private String title;
-    private String authorUsername;
     private String authorNickname;
     private PostCategory category;
     private Boolean isDeleted;
-    private int views;
+    private Integer views;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    public PostListDto(Long id, String title, String authorUsername, String authorNickname, int views
+    public PostListDto(Long id, String title, String authorNickname, int views
             ,PostCategory category, LocalDateTime createdAt, LocalDateTime updatedAt, Boolean isDeleted) {
         this.id = id;
         this.title = title;
-        this.authorUsername = authorUsername;
         this.authorNickname = authorNickname;
         this.category = category;
         this.isDeleted = isDeleted;

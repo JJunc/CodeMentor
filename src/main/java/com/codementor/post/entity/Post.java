@@ -4,6 +4,7 @@ import com.codementor.comment.entity.Comment;
 import com.codementor.member.entity.Member;
 import com.codementor.post.dto.PostCreateDto;
 import com.codementor.post.dto.PostDetailDto;
+import com.codementor.post.dto.PostListDto;
 import com.codementor.post.dto.PostUpdateDto;
 import com.codementor.post.enums.PostCategory;
 import jakarta.persistence.*;
@@ -29,6 +30,51 @@ import java.util.List;
 @AllArgsConstructor
 @SQLDelete(sql = "UPDATE post SET is_deleted = true WHERE id = ?")
 @SQLRestriction("is_deleted = false")
+@NamedNativeQuery(
+        name = "Post.findByTitleAndCategory",
+        query = """
+                SELECT
+                       p.id, 
+                       p.title,
+                       p.author_username AS authorUsername,  
+                       p.author_nickname AS authorNickname,  
+                       p.views AS views, 
+                       p.category,
+                       p.created_at AS createdAt,            
+                       p.updated_at AS updatedAt,            
+                       p.is_deleted AS isDeleted
+                   FROM post p
+                   WHERE p.category = :category AND p.is_deleted = false
+                   AND MATCH (p.title) AGAINST (CONCAT(:title, '*') IN BOOLEAN MODE)
+                   ORDER BY p.created_at DESC
+                """,
+        resultSetMapping = "PostListDtoMapping"
+)
+@NamedNativeQuery(
+        name = "Post.countByTitleAndCategory",
+        query = """
+            SELECT COUNT(*) 
+            FROM post p
+            WHERE p.category = :category AND p.is_deleted = false
+            AND MATCH (p.title) AGAINST (CONCAT(:title, '*') IN BOOLEAN MODE)
+            """
+)
+@SqlResultSetMapping(
+        name = "PostListDtoMapping",
+        classes = @ConstructorResult(
+                targetClass = PostListDto.class,
+                columns = {
+                        @ColumnResult(name = "id", type = Long.class),
+                        @ColumnResult(name = "title", type = String.class),
+                        @ColumnResult(name = "authorNickname", type = String.class),
+                        @ColumnResult(name = "views", type = Integer.class),
+                        @ColumnResult(name = "category", type = PostCategory.class),
+                        @ColumnResult(name = "createdAt", type = LocalDateTime.class),
+                        @ColumnResult(name = "updatedAt", type = LocalDateTime.class),
+                        @ColumnResult(name = "isDeleted", type = Boolean.class)
+                }
+        )
+)
 public class Post {
 
     @Id

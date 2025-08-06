@@ -48,6 +48,8 @@ public class PostController {
             return "redirect:/post/FREE";
         }
 
+        log.info("category= {} ", category);
+
         model.addAttribute("category", category);
         model.addAttribute("posts", postService.getPostsByCategory(category, pageable));
         long end = System.currentTimeMillis();
@@ -58,7 +60,7 @@ public class PostController {
 
     @GetMapping("/search")
     public String search(@ModelAttribute PostSearchDto searchDto
-            , @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable
+            , @PageableDefault(page = 0, size = 10) Pageable pageable
             , Model model, RedirectAttributes redirectAttributes) {
         // 회원 검색 결과
         Page<PostListDto> result = postService.searchPosts(searchDto, pageable);
