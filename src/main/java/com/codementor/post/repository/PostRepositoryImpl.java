@@ -16,23 +16,32 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
 
     @Override
     public List<PostListDto> findByCategory(PostCategory category, int limit, int offset) {
-        String sql = """
-            SELECT p.id, p.title, p.author_nickname as authorNickname, p.views, p.category,
-                  p.created_at AS createdAt,
-                   p.updated_at AS updatedAt,
-                   p.is_deleted as isDeleted
-            FROM post p
-            JOIN (SELECT p1.id
-                FROM post p1
-                WHERE p1.category = :category AND p1.is_deleted = false
-                ORDER BY p1.id DESC
-                LIMIT :limit OFFSET :offset) temp ON p.id = temp.id
-        """;
-
-        return em.createNativeQuery(sql, "PostListDtoMapping")
-                .setParameter("category", category)
+        return em.createNamedQuery("Post.findPostListDtoByCategory", PostListDto.class)
+                .setParameter("category", category.name()) // 꼭 name()으로 변환
                 .setParameter("limit", limit)
                 .setParameter("offset", offset)
                 .getResultList();
     }
+
+//    @Override
+//    public List<PostListDto> findByCategory(PostCategory category, int limit, int offset) {
+//        String sql = """
+//            SELECT p.id, p.title, p.author_nickname as authorNickname, p.views, p.category,
+//                  p.created_at AS createdAt,
+//                   p.updated_at AS updatedAt,
+//                   p.is_deleted as isDeleted
+//            FROM post p
+//            JOIN (SELECT p1.id
+//                FROM post p1
+//                WHERE p1.category = :category AND p1.is_deleted = false
+//                ORDER BY p1.id DESC
+//                LIMIT :limit OFFSET :offset) temp ON p.id = temp.id
+//        """;
+//
+//        return em.createNativeQuery(sql, "PostListDtoMapping")
+//                .setParameter("category", category)
+//                .setParameter("limit", limit)
+//                .setParameter("offset", offset)
+//                .getResultList();
+//    }
 }

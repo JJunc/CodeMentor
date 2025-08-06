@@ -59,6 +59,24 @@ import java.util.List;
             AND MATCH (p.title) AGAINST (CONCAT(:title, '*') IN BOOLEAN MODE)
             """
 )
+@NamedNativeQuery(
+        name = "Post.findPostListDtoByCategory",
+        resultSetMapping = "PostListDtoMapping",
+        query = """
+        SELECT p.id, p.title, p.author_nickname AS authorNickname, p.views, p.category, 
+               p.created_at AS createdAt, p.updated_at AS updatedAt, p.is_deleted AS isDeleted
+        FROM post p
+        JOIN (
+            SELECT id
+            FROM post
+            WHERE category = :category
+            AND is_deleted = false
+            ORDER BY id DESC
+            LIMIT :limit OFFSET :offset
+        ) temp ON temp.id = p.id
+        """
+)
+
 @SqlResultSetMapping(
         name = "PostListDtoMapping",
         classes = @ConstructorResult(

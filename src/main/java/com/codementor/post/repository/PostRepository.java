@@ -23,16 +23,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     Optional<Post> findById(Long id);
 
     @Query(value = """
-    SELECT p.id, p.title, p.author_nickname, p.views, p.category, p.created_at, p.updated_at, p.is_deleted
-    FROM post p
-    JOIN (
-        SELECT id
-        FROM post
-        WHERE category = :category AND is_deleted = false
-        ORDER BY id DESC
-        LIMIT :limit OFFSET :offset
-    ) temp ON temp.id = p.id
-    """, nativeQuery = true)
+            SELECT new com.codementor.post.dto.PostListDto(p.id, p.title, p.authorNickname,
+                p.views, p.category, p.createdAt, p.updatedAt, p.isDeleted)
+            FROM Post p
+            WHERE p.category = :category
+            AND p.isDeleted = false 
+            ORDER BY p.id DESC
+            LIMIT :limit OFFSET :offset
+            """)
     List<PostListDto> findByCategory(@Param("category") PostCategory category,
                                      @Param("limit") int limit,
                                      @Param("offset") int offset);
