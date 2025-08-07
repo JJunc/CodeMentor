@@ -17,10 +17,28 @@ public class PostRepositoryImpl implements PostRepositoryCustom {
     @Override
     public List<PostListDto> findByCategory(PostCategory category, int limit, int offset) {
         return em.createNamedQuery("Post.findPostListDtoByCategory", PostListDto.class)
-                .setParameter("category", category.name()) // 꼭 name()으로 변환
+                .setParameter("category", category.name())
                 .setParameter("limit", limit)
                 .setParameter("offset", offset)
                 .getResultList();
+    }
+
+    @Override
+    public List<PostListDto> findByTitleAndCategory(String keyword, PostCategory category, int limit, int offset) {
+        return em.createNamedQuery("Post.findByTitleAndCategory", PostListDto.class)
+                .setParameter("keyword", keyword)
+                .setParameter("category", category.name())
+                .setParameter("limit", limit)
+                .setParameter("offset", offset)
+                .getResultList();
+    }
+
+    @Override
+    public Long postCountByTitleAndCategory(String keyword, PostCategory category) {
+        return ((Number) em.createNamedQuery("Post.postCountByTitleAndCategory")
+                .setParameter("category", category.name())
+                .setParameter("keyword", keyword)
+                .getSingleResult()).longValue();
     }
 
 //    @Override

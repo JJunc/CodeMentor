@@ -32,49 +32,48 @@ import java.util.List;
 @SQLRestriction("is_deleted = false")
 @NamedNativeQuery(
         name = "Post.findByTitleAndCategory",
+        resultSetMapping = "PostListDtoMapping",
         query = """
-                SELECT
+                    SELECT
                        p.id, 
                        p.title,
-                       p.author_username AS authorUsername,  
                        p.author_nickname AS authorNickname,  
                        p.views AS views, 
                        p.category,
                        p.created_at AS createdAt,            
                        p.updated_at AS updatedAt,            
                        p.is_deleted AS isDeleted
-                   FROM post p
-                   WHERE p.category = :category AND p.is_deleted = false
-                   AND MATCH (p.title) AGAINST (CONCAT(:title, '*') IN BOOLEAN MODE)
-                   ORDER BY p.created_at DESC
-                """,
-        resultSetMapping = "PostListDtoMapping"
+                   FROM post p 
+                   WHERE p.category = :category 
+                     AND p.is_deleted = false
+                     AND MATCH (p1.title) AGAINST (CONCAT(:keyword, '*') IN BOOLEAN MODE)
+                   ORDER BY p1.id DESC
+                   LIMIT :limit OFFSET :offset
+                """
 )
 @NamedNativeQuery(
-        name = "Post.countByTitleAndCategory",
+        name = "Post.postCountByTitleAndCategory",
         query = """
-            SELECT COUNT(*) 
-            FROM post p
-            WHERE p.category = :category AND p.is_deleted = false
-            AND MATCH (p.title) AGAINST (CONCAT(:title, '*') IN BOOLEAN MODE)
-            """
+                SELECT COUNT(p.id) 
+                FROM post p
+                WHERE p.category = :category AND p.is_deleted = false
+                AND MATCH (p.title) AGAINST (CONCAT(:keyword, '*') IN BOOLEAN MODE)
+                """
 )
 @NamedNativeQuery(
         name = "Post.findPostListDtoByCategory",
         resultSetMapping = "PostListDtoMapping",
         query = """
-        SELECT p.id, p.title, p.author_nickname AS authorNickname, p.views, p.category, 
-               p.created_at AS createdAt, p.updated_at AS updatedAt, p.is_deleted AS isDeleted
-        FROM post p
-        JOIN (
-            SELECT id
-            FROM post
-            WHERE category = :category
-            AND is_deleted = false
-            ORDER BY id DESC
-            LIMIT :limit OFFSET :offset
-        ) temp ON temp.id = p.id
-        """
+                SELECT p.id, p.title, p.author_nickname AS authorNickname, p.views, p.category, 
+                       p.created_at AS createdAt, p.updated_at AS updatedAt, p.is_deleted AS isDeleted
+                FROM post p
+                JOIN (SELECT id
+                    FROM post
+                    WHERE category = :category
+                    AND is_deleted = false
+                    ORDER BY id DESC
+                    LIMIT :limit OFFSET :offset) temp ON temp.id = p.id
+                """
 )
 
 @SqlResultSetMapping(

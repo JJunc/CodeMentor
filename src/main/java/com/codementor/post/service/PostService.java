@@ -63,19 +63,18 @@ public class PostService {
 
 
     public Page<PostListDto> searchPosts(PostSearchDto dto, Pageable pageable) {
-        Page<Post> posts = null;
+        List<PostListDto> posts = null;
         log.info("검색조건: {}, 카테고리: {}, 검색 키워드: {}" , dto.getSearchType(), dto.getCategory(), dto.getKeyword());
-
+        Long totalCount = postRepositoryImpl.postCountByTitleAndCategory(dto.getKeyword(), dto.getCategory());
+        int limit = pageable.getPageSize();
+        int offset = (int) pageable.getOffset();
         pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
 
             switch (dto.getSearchType()) {
                 case TITLE:
                     log.info("제목 검색 실행");
-                    posts = postRepository.findByTitleAndCategory(dto.getKeyword(), dto.getCategory(), pageable);
-                    for(Post post : posts){
-                        log.info("게시판 제목: {}", post.getTitle());
-                    }
-                    log.info("검색된 게시글 수: {}", posts.getTotalElements());
+                    posts = postRepositoryImpl.findByTitleAndCategory(dto.getKeyword(), dto.getCategory(), limit, offset);
+//                    posts = postRepository.findByTitleAndCategory(dto.getKeyword(), dto.getCategory(), limit, offset);
                     break;
 //                case CONTENT:
 //                    posts = postRepository.findByContentAndCategory(dto.getKeyword(), dto.getCategory(), pageable);
@@ -88,7 +87,7 @@ public class PostService {
 //                    break;
             }
 
-        return  posts.map(postListMapper::toDto);
+        return new PageImpl<>(posts, pageable, totalCount);
     }
 
 //    public Page<PostListDto> searchPosts(PostSearchDto searchDto, Pageable pageable) {

@@ -9,4 +9,6 @@ import java.util.List;
 
 public interface PostRepositoryCustom {
     List<PostListDto> findByCategory(PostCategory category, int limit, int offset);
+    List<PostListDto> findByTitleAndCategory(String keyword, PostCategory category, int limit, int offset);
+    Long postCountByTitleAndCategory(String keyword, PostCategory category);
 }

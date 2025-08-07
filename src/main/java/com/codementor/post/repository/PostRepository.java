@@ -62,6 +62,22 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             @Param("category") PostCategory category,
             Pageable pageable);
 
+    @Query(value = """
+            SELECT new com.codementor.post.dto.PostListDto(p.id, p.title, p.authorNickname,
+                p.views, p.category, p.createdAt, p.updatedAt, p.isDeleted)
+            FROM Post p
+            WHERE p.category = :category
+                        AND p.title = :keyword
+            AND p.isDeleted = false 
+            ORDER BY p.id DESC
+            LIMIT :limit OFFSET :offset
+            """)
+    List<PostListDto> findByTitleAndCategory(
+                                     @Param("keyword") String keyword,
+                                     @Param("category") PostCategory category,
+                                     @Param("limit") int limit,
+                                     @Param("offset") int offset);
+
     Page<PostListDto> searchByTitleAndCategory(String title, PostCategory category, Pageable pageable);
 
 
