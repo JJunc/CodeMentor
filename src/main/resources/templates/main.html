@@ -3,7 +3,68 @@
       layout:decorate="~{layout/layout}">
 <th:block layout:fragment="content">
     <div class="container-xxl text-center">
-        메인 페이지
+        <div class="row g-4">
+
+            <!-- 자유게시판 -->
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header text-black fw-bold">
+                        <a th:href="@{/post/FREE}" class="text-decoration-none">자유게시판</a>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li th:each="post : ${freePosts}" class="list-group-item">
+                            <a th:href="@{|/post/FREE/${post.id}|}" th:text="${post.title}"
+                               class="text-decoration-none"></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 백엔드 -->
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header text-black fw-bold">
+                        <a th:href="@{/post/BACKEND}" class="text-decoration-none">백엔드</a>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li th:each="post : ${backendPosts}" class="list-group-item">
+                            <a th:href="@{|/post/BACKEND/${post.id}|}" th:text="${post.title}"
+                               class="text-decoration-none"></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 프론트엔드 -->
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header text-black fw-bold">
+                        <a th:href="@{/post/FRONTEND}" class="text-decoration-none">프론트엔드</a>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li th:each="post : ${frontendPosts}" class="list-group-item">
+                            <a th:href="@{|/post/FRONTEND/${post.id}|}" th:text="${post.title}"
+                               class="text-decoration-none"></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 취업 -->
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-header text-black fw-bold">
+                        <a th:href="@{/post/JOB}" class="text-decoration-none">취업</a>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li th:each="post : ${jobPosts}" class="list-group-item">
+                            <a th:href="@{|/post/JOB/${post.id}|}" th:text="${post.title}"
+                               class="text-decoration-none"></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
 </th:block>
 </html>

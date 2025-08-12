@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<nav class="navbar navbar-expand-lg navbar-light shadow mb-5" th:fragment="navbar">
+    <div class="container-xxl">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse d-flex align-items-center justify-content-between" id="navbarNav">
+            <!-- 왼쪽: 로고 & 메뉴 -->
+            <div class="d-flex align-items-center">
+                <a class="navbar-brand fw-bold text-success me-4" href="/">코드멘토</a>
+                <ul class="navbar-nav gap-3">
+                    <li class="nav-item"><a class="nav-link fw-semibold" th:href="@{/post/FREE}">자유게시판</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold" th:href="@{/post/FRONTEND}">프론트엔드</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold" th:href="@{/post/BACKEND}">백엔드</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold" th:href="@{/post/JOB}">취업</a></li>
+                </ul>
+            </div>
+            <!-- 가운데: 검색 폼 -->
+            <div class="d-flex justify-content-center flex-grow-1">
+                <form class="d-flex w-50">
+                    <input class="form-control me-2" type="search" placeholder="통합검색" name="query"
+                           style="height: 38px;">
+                    <button class="btn btn-success d-flex align-items-center justify-content-center"
+                            type="submit" style="height: 38px; white-space: nowrap; padding: 0 12px;">
+                        <i class="bi bi-search"></i>
+                    </button>
+                </form>
+            </div>
+            <!-- 오른쪽: 로그인 여부에 따른 버튼 표시 -->
+            <div class="d-flex">
+                <div th:if="${session.loginMember} != null">
+                    <form th:action="@{/member/logout}" method="post" style="display:inline;">
+                        <button type="submit" class="btn btn-danger me-2">로그아웃</button>
+                    </form>
+                    <a href="/my" class="btn btn-success">마이페이지</a>
+                </div>
+                <div th:if="${session.loginMember} == null">
+                    <a href="/member/login" class="btn btn-success me-2">로그인</a>
+                    <a href="/member/signUp" class="btn btn-outline-success">회원가입</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+</html>
