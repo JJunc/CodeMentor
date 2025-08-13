@@ -4,45 +4,47 @@
 <th:block layout:fragment="content">
     <div class="container-xxl">
         <!-- 카테고리 탭 -->
-        <ul class="nav nav-tabs justify-content-center align-items-center">
+        <ul class="nav nav-tabs justify-content-center align-items-center mb-3">
             <li class="nav-item">
-                <a class="nav-link"
+                <a class="nav-link text-reset"
                    th:classappend="${category.postCategory eq '자유게시판'} ? active : ''"
                    th:href="@{/post/free}">자유게시판</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link"
+                <a class="nav-link text-reset"
                    th:classappend="${category.postCategory eq '백엔드'} ? active : ''"
                    th:href="@{/post/backend}">백엔드</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link"
+                <a class="nav-link text-reset"
                    th:classappend="${category.postCategory eq '프론트엔드'} ? active : ''"
                    th:href="@{/post/frontend}">프론트엔드</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link"
+                <a class="nav-link text-reset"
                    th:classappend="${category.postCategory eq '취업'} ? active : ''"
                    th:href="@{/post/job}">취업</a>
             </li>
         </ul>
 
         <form th:action="@{/post/search}" method="get">
-            <label for="keyword" class="fw-bold">검색어:</label>
-            <input type="text" name="keyword" id="keyword" required>
-            <select name="category" id="category">
-                <option value="FREE" th:selected="${category == 'FREE'}">자유게시판</option>
-                <option value="FRONTEND" th:selected="${category == 'FRONTEND'}">프론트엔드</option>
-                <option value="BACKEND" th:selected="${category == 'BACKEND'}">백엔드</option>
-                <option value="JOB" th:selected="${category == 'JOB'}">취업</option>
-            </select>
-            <select name="searchType" id="search">
-                <option value="TITLE">제목</option>
-                <option value="CONTENT">내용</option>
-                <option value="TITLE_AND_CONTENT">제목+내용</option>
-                <option value="COMMENT">댓글</option>
-            </select>
-            <button type="submit" class="btn btn-sm btn-primary">검색</button>
+            <div class="row justify-content-center">
+                <div class="col-4">
+                    <input type="text" name="keyword" id="keyword" class="form-control" placeholder="검색어를 입력해 주세요." required>
+                </div>
+                <div class="col-2">
+                    <input type="hidden" th:value="${category}" name="category">
+                    <select name="searchType" id="search" class="form-control">
+                        <option value="TITLE">제목</option>
+                        <option value="CONTENT">내용</option>
+                        <option value="TITLE_AND_CONTENT">제목+내용</option>
+                        <option value="COMMENT">댓글</option>
+                    </select>
+                </div>
+                <div class="col-1">
+                    <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-search"></i></button>
+                </div>
+            </div>
         </form>
 
         <!-- 게시글 목록 -->

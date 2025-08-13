@@ -35,19 +35,19 @@ import java.util.List;
         resultSetMapping = "PostListDtoMapping",
         query = """
                     SELECT
-                       p.id, 
-                       p.title,
-                       p.author_nickname AS authorNickname,  
-                       p.views AS views, 
-                       p.category,
-                       p.created_at AS createdAt,            
-                       p.updated_at AS updatedAt,            
-                       p.is_deleted AS isDeleted
-                   FROM post p 
-                   WHERE p.category = :category 
-                     AND p.is_deleted = false
-                     AND MATCH (p1.title) AGAINST (CONCAT(:keyword, '*') IN BOOLEAN MODE)
-                   ORDER BY p1.id DESC
+                       id, 
+                       title,
+                       author_nickname AS authorNickname,  
+                       views AS views, 
+                       category,
+                       created_at AS createdAt,            
+                       updated_at AS updatedAt,            
+                       is_deleted AS isDeleted
+                   FROM post
+                   WHERE category = :category 
+                     AND is_deleted = false
+                     AND MATCH (title) AGAINST (CONCAT(:keyword, '*') IN BOOLEAN MODE)
+                   ORDER BY id DESC
                    LIMIT :limit OFFSET :offset
                 """
 )

@@ -9,7 +9,7 @@
             <div class="col-md-6">
                 <div class="card shadow-sm">
                     <div class="card-header text-black fw-bold">
-                        <a th:href="@{/post/FREE}" class="text-decoration-none">자유게시판</a>
+                        <a th:href="@{/post/FREE}" class="text-decoration-none text-reset">자유게시판</a>
                     </div>
                     <ul class="list-group list-group-flush">
                         <li th:each="post : ${freePosts}" class="list-group-item">
@@ -24,7 +24,7 @@
             <div class="col-md-6">
                 <div class="card shadow-sm">
                     <div class="card-header text-black fw-bold">
-                        <a th:href="@{/post/BACKEND}" class="text-decoration-none">백엔드</a>
+                        <a th:href="@{/post/BACKEND}" class="text-decoration-none text-reset">백엔드</a>
                     </div>
                     <ul class="list-group list-group-flush">
                         <li th:each="post : ${backendPosts}" class="list-group-item">
@@ -39,7 +39,7 @@
             <div class="col-md-6">
                 <div class="card shadow-sm">
                     <div class="card-header text-black fw-bold">
-                        <a th:href="@{/post/FRONTEND}" class="text-decoration-none">프론트엔드</a>
+                        <a th:href="@{/post/FRONTEND}" class="text-decoration-none text-reset">프론트엔드</a>
                     </div>
                     <ul class="list-group list-group-flush">
                         <li th:each="post : ${frontendPosts}" class="list-group-item">
@@ -54,7 +54,7 @@
             <div class="col-md-6">
                 <div class="card shadow-sm">
                     <div class="card-header text-black fw-bold">
-                        <a th:href="@{/post/JOB}" class="text-decoration-none">취업</a>
+                        <a th:href="@{/post/JOB}" class="text-decoration-none text-reset">취업</a>
                     </div>
                     <ul class="list-group list-group-flush">
                         <li th:each="post : ${jobPosts}" class="list-group-item">
