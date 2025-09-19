@@ -1,6 +1,7 @@
-package com.codementor.post.service;
+package com.codementor.config;
 
 import com.codementor.post.enums.PostCategory;
+import com.codementor.post.service.PostCountCacheService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -8,14 +9,14 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class PostCountCacheWarmUpRunner implements ApplicationRunner {
+public class CacheInitializer implements ApplicationRunner {
 
     private final PostCountCacheService postCountCacheService;
 
     @Override
     public void run(ApplicationArguments args) {
         for (PostCategory category : PostCategory.values()) {
-            postCountCacheService.getCountByCategoryCached(category); // 프록시를 통해 캐싱 적용됨
+            postCountCacheService.getPostCount(category); // 프록시 호출
         }
     }
 }

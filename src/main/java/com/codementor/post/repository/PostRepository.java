@@ -7,6 +7,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.EntityManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -27,17 +28,14 @@ public interface PostRepository extends JpaRepository<Post, Long> {
                 p.views, p.category, p.createdAt, p.updatedAt, p.isDeleted)
             FROM Post p
             WHERE p.category = :category
-            AND p.isDeleted = false 
+            AND p.isDeleted = false
             ORDER BY p.id DESC
-            LIMIT :limit OFFSET :offset
             """)
-    List<PostListDto> findByCategory(@Param("category") PostCategory category,
-                                     @Param("limit") int limit,
-                                     @Param("offset") int offset);
+    Page<PostListDto> findByCategory(@Param("category") PostCategory category, Pageable pageable);
 
 
     @Query("SELECT COUNT(p) FROM Post p WHERE p.category = :category AND p.isDeleted = false ")
-    Long countByCategory(@Param("category") PostCategory category);
+    Long countByCategoryAndIsDeletedFalse(@Param("category") PostCategory category);
 
     // 검색
     Page<Post> findByCategoryOrderById(PostCategory category, Pageable pageable);
@@ -73,10 +71,10 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             LIMIT :limit OFFSET :offset
             """)
     List<PostListDto> findByTitleAndCategory(
-                                     @Param("keyword") String keyword,
-                                     @Param("category") PostCategory category,
-                                     @Param("limit") int limit,
-                                     @Param("offset") int offset);
+            @Param("keyword") String keyword,
+            @Param("category") PostCategory category,
+            @Param("limit") int limit,
+            @Param("offset") int offset);
 
     Page<PostListDto> searchByTitleAndCategory(String title, PostCategory category, Pageable pageable);
 

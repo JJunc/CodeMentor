@@ -1,6 +1,7 @@
 package com.codementor.post.service;
 
 
+import com.codementor.config.CacheConfig;
 import com.codementor.exception.PostNotFoundException;
 import com.codementor.member.entity.Member;
 import com.codementor.exception.MemberNotFoundException;
@@ -14,6 +15,7 @@ import com.codementor.post.enums.PostCategory;
 import com.codementor.post.repository.PostRepository;
 
 import com.codementor.post.repository.PostRepositoryImpl;
+import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,23 +46,18 @@ public class PostService {
     private final MemberRepository memberRepository;
     private final PostCreateMapper postCreateMapper;
     private final PostDetailMapper postDetailMapper;
-    private final PostListMapper postListMapper;
     private final PostCountCacheService postCountCacheService;
-
-//    public List<PostListDto> getPostList(PostCategory category, Pageable pageable) {
-//        return postRepository.findByCategory(category, pageable);
-//    }
+    private final PostListMapper postListMapper;
+    private final CacheManager cacheManager;
 
     public Page<PostListDto> getPostsByCategory(PostCategory category, Pageable pageable) {
-        Long totalCount = postCountCacheService.getCountByCategoryCached(category);
+        Long totalCount = postCountCacheService.getPostCount(category);
         int limit = pageable.getPageSize();
         int offset = (int) pageable.getOffset();
         log.info("category= {} ", category);
         List<PostListDto> posts = postRepositoryImpl.findByCategory(category, limit, offset);
         return new PageImpl<>(posts, pageable, totalCount);
     }
-
-
 
     public Page<PostListDto> searchPosts(PostSearchDto dto, Pageable pageable) {
         List<PostListDto> posts = null;
@@ -109,6 +106,15 @@ public class PostService {
         Post post = postCreateMapper.toEntity(dto);
         post.createPost(dto);
         postRepository.save(post);
+
+        postCountCacheService.incrementPostCount(dto.getCategory());
+        printCache(dto.getCategory());
+    }
+
+    public void printCache(PostCategory category) {
+        Long cachedCount = postCountCacheService.getPostCount(category);
+
+        log.info("printCache | category={} | cachedCount={}", category, cachedCount);
     }
 
     @Transactional
@@ -133,7 +139,9 @@ public class PostService {
     @Transactional
     public void deletePost(PostDeleteDto dto) {
         Post post = getPost(dto);
-        postRepository.delete(post);
+        post.delete(dto);
+
+        postCountCacheService.decrementPostCount(dto.getCategory());
     }
 
     // 게시글 찾기 메소드

@@ -9,7 +9,7 @@
         <div class="collapse navbar-collapse d-flex align-items-center justify-content-between" id="navbarNav">
             <!-- 왼쪽: 로고 & 메뉴 -->
             <div class="d-flex align-items-center">
-                <a class="navbar-brand fw-bold text-success me-4" href="/">코드멘토</a>
+                <a class="navbar-brand fw-bold text-primary fs-3 me-4" href="/">코드멘토</a>
                 <ul class="navbar-nav gap-3">
                     <li class="nav-item"><a class="nav-link fw-bold text-black" th:href="@{/post/FREE}">자유게시판</a></li>
                     <li class="nav-item"><a class="nav-link fw-bold text-black" th:href="@{/post/FRONTEND}">프론트엔드</a></li>
@@ -21,9 +21,9 @@
             <!-- 가운데: 검색 폼 -->
             <div class="d-flex justify-content-center flex-grow-1">
                 <form class="d-flex w-50">
-                    <input class="form-control me-2" type="search" placeholder="통합검색" name="query"
+                    <input class="form-control me-2" type="search" placeholder="게시글 제목을 입력해주세요." name="query"
                            style="height: 38px;">
-                    <button class="btn btn-success d-flex align-items-center justify-content-center"
+                    <button class="btn btn-primary  d-flex align-items-center justify-content-center"
                             type="submit" style="height: 38px; white-space: nowrap; padding: 0 12px;">
                         <i class="bi bi-search"></i>
                     </button>
@@ -38,8 +38,8 @@
                     <a href="/my" class="btn btn-success">마이페이지</a>
                 </div>
                 <div th:if="${session.loginMember} == null">
-                    <a href="/member/login" class="btn btn-success me-2">로그인</a>
-                    <a href="/member/signUp" class="btn btn-outline-success">회원가입</a>
+                    <a href="/member/login" class="btn btn-primary me-2">로그인</a>
+                    <a href="/member/signUp" class="btn btn-outline-primary">회원가입</a>
                 </div>
             </div>
         </div>

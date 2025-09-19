@@ -19,7 +19,7 @@ import org.springframework.web.servlet.view.json.MappingJackson2JsonView;
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
-    @Value("${FILE_UPLOAD_DIR}")
+//    @Value("${FILE_UPLOAD_DIR}")
     private String fileUploadDir;
 
     @Override

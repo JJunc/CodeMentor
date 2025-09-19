@@ -31,7 +31,10 @@ public class GlobalExceptionHandler {
         return "/member/login-form";
     }
 
-
+    @ExceptionHandler(RuntimeException.class)
+    public String handleRuntimeException(RuntimeException e, HttpServletRequest request, Model model) {
+        return "/error/500";
+    }
 
     @ExceptionHandler(AccessDeniedException.class)
     public String handleAccessDenied(Exception e, Model model) {

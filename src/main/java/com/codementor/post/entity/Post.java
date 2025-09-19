@@ -2,10 +2,7 @@ package com.codementor.post.entity;
 
 import com.codementor.comment.entity.Comment;
 import com.codementor.member.entity.Member;
-import com.codementor.post.dto.PostCreateDto;
-import com.codementor.post.dto.PostDetailDto;
-import com.codementor.post.dto.PostListDto;
-import com.codementor.post.dto.PostUpdateDto;
+import com.codementor.post.dto.*;
 import com.codementor.post.enums.PostCategory;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -132,6 +129,10 @@ public class Post {
         this.title = dto.getTitle();
         this.content = dto.getContent();
         this.category = dto.getCategory();
+    }
+
+    public void delete(PostDeleteDto dto) {
+        this.isDeleted = true;
     }
 
     public void createPost(PostCreateDto dto) {
