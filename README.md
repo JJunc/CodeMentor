@@ -13,9 +13,8 @@ Java, Spring Boot, Spring Data JPA, MySQL
 * **게시판**
 
   * 페이징 처리 최적화 (COUNT 쿼리 최소화, 캐싱 적용, covering index)
-  * 게시글 작성 시 이미지 업로드 지원 (로컬 서버 저장, CKEditor 연동)
     
 * **멘토링 예약**
-
+  
   * 동시 예약 방지 (UNIQUE 제약 조건 활용)
-  * 예약 내역 조회 및 취소
+
