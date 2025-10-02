@@ -17,5 +17,5 @@ Java, Spring Boot, Spring Data JPA, MySQL
     
 * **멘토링 예약**
 
-  * 동시 예약 방지 (DB Lock & 트랜잭션 활용)
+  * 동시 예약 방지 (UNIQUE 제약 조건 활용)
   * 예약 내역 조회 및 취소
