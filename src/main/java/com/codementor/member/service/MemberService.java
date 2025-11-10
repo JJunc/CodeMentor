@@ -1,13 +1,10 @@
 package com.codementor.member.service;
 
-import com.codementor.admin.dto.MemberUpdateDto;
 import com.codementor.exception.InvalidPasswordException;
 import com.codementor.exception.LoginFailedException;
 import com.codementor.exception.MemberNotFoundException;
 import com.codementor.member.dto.MemberSearchDto;
 import com.codementor.member.dto.mapper.MemberSearchMapper;
-import com.codementor.admin.entity.MemberSuspension;
-import com.codementor.admin.repository.MemberSuspensionRepository;
 import com.codementor.member.dto.*;
 import com.codementor.member.dto.mapper.*;
 import com.codementor.member.entity.Member;
@@ -37,13 +34,10 @@ import java.util.List;
 public class MemberService {
 
     private final MemberRepository memberRepository;
-    private final MemberSuspensionRepository memberSuspensionRepository;
     private final PostRepository postRepository;
     private final PostListMapper postListMapper;
-    private final LoginMapper loginMapper;
     private final signUpMapper signUpMapper;
     private final MemberListMapper memberListMapper;
-    private final MemberSearchMapper memberSearchMapper;
     private final MemberUpdateMapper memberUpdateMapper;
     private final MyPageMapper myPageMapper;
     private final PasswordEncoder passwordEncoder;
@@ -53,28 +47,6 @@ public class MemberService {
         return memberRepository.findAll(pageable).map(m -> memberListMapper.toDto(m));
     }
 
-    public Page<MemberListDto> searchMembers(MemberSearchDto memberSearchDto, Pageable pageable) {
-        // SearchType에 따라 조건을 다르게 처리
-        Page<Member> members;
-        log.info("검색조건 {}", memberSearchDto.getSearchType());
-
-        switch (memberSearchDto.getSearchType()) {
-            case EMAIL:
-                members = memberRepository.findByEmail(memberSearchDto.getKeyword(), pageable);
-                break;
-            case USERNAME:
-                members = memberRepository.findByUsername(memberSearchDto.getKeyword(), pageable);
-                break;
-            case NICKNAME:
-                members = memberRepository.findByNickname(memberSearchDto.getKeyword(), pageable);
-                break;
-            default:
-                members = memberRepository.findAll(pageable);  // 기본적으로 전체 검색
-                break;
-        }
-
-        return members.map(memberListMapper::toDto);  // 반환 시 DTO로 변환
-    }
 
 
     public void signUp(SignUpRequestDto dto) {
@@ -129,14 +101,6 @@ public class MemberService {
         LoginResponseDto loginResponseDto = new LoginResponseDto();
         loginResponseDto.setUsername(member.getUsername());
         loginResponseDto.setRole(member.getRole());
-
-        if (member.getStatus() != MemberStatus.ACTIVE) {
-            MemberSuspension memberSuspension = memberSuspensionRepository.findByMemberId(member.getId())
-                    .orElseThrow(() -> new IllegalStateException("정지 정보가 없습니다."));
-            loginResponseDto.setStartDate(memberSuspension.getStartDate());
-            loginResponseDto.setEndDate(memberSuspension.getEndDate());
-            loginResponseDto.setReason(memberSuspension.getReason());
-        }
 
         return loginResponseDto;
     }

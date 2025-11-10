@@ -33,10 +33,6 @@ public class PostController {
 
     private final PostService postService;
     private final ImageService imageService;
-    private final CommentService commentService;
-
-    @Value("${file.upload-dir}")
-    private String uploadDir;
 
     @GetMapping("/{category}")
     public String posts(@PathVariable PostCategory category

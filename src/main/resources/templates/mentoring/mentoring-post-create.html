@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+<th:block layout:fragment="content">
+    <div class="container-xxl">
+        <h2 class="text-center mb-4">멘토링 게시글 작성</h2>
+
+        <form th:action="@{/mentoring/post/create}" th:object="${dto}" method="post" id="postForm">
+            <input th:type="hidden" name="mentorUsername"
+                   th:value="${session.loginMember.username}">
+
+            <!-- 제목 -->
+            <div class="mb-3">
+                <label for="title" class="form-label">제목</label>
+                <input type="text" class="form-control" id="title" name="title" placeholder="제목을 입력하세요." required>
+            </div>
+
+            <div class="mb-3">
+                <div class="mb-3">
+                    <label>포지션 선택</label>
+                    <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                        <div th:each="position : ${T(com.codementor.mentoring.enums.MentorPosition).values()}"
+                             style="display: flex; align-items: center;">
+                            <input type="checkbox"
+                                   th:id="${'position-' + position.name()}"
+                                   th:value="${position.name()}"
+                                   th:field="*{mentorPosition}"/>
+                            <label th:for="${'position-' + position.name()}" th:text="${position.position}"
+                                   style="margin-left: 4px;"></label>
+                        </div>
+                    </div>
+                </div>
+
+                <label>경력 선택</label>
+                <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+                    <div th:each="career : ${T(com.codementor.mentoring.enums.MentorCareer).values()}"
+                         style="display: flex; align-items: center;">
+                        <input type="radio"
+                               th:id="${'career-' + career.name()}"
+                               th:value="${career.name()}"
+                               th:field="*{mentorCareer}"/>
+                        <label th:for="${'career-' + career.name()}"
+                               th:text="${career.label}"
+                               style="margin-left: 4px;"></label>
+                    </div>
+                </div>
+
+
+                <!-- 멘토링 진행 시간 선택 -->
+                <label for="hours">시간</label>
+                <select th:field="*{durationHorus}" id="hours">
+                    <option value="0">0시간</option>
+                    <option th:each="h : ${#numbers.sequence(1, 5)}"
+                            th:value="${h}"
+                            th:text="${h + '시간'}">
+                    </option>
+                </select>
+
+                <!-- 분 선택 -->
+                <label for="minutes">분</label>
+                <select th:field="*{durationMinutes}" id="minutes">
+                    <option value="0">0분</option>
+                    <option th:each="m : ${#numbers.sequence(10, 50, 10)}"
+                            th:value="${m}"
+                            th:text="${m + '분'}">
+                    </option>
+                </select>
+
+
+                <label for="price">가격</label>
+                <input id="price" type="number" th:field="*{price}" min="0" required/>
+
+                <!-- CKEditor5 본문 -->
+                <div class="mb-3">
+                    <label for="editor" class="form-label">내용</label>
+                    <textarea class="form-control" id="editor" th:field="*{content}"></textarea>
+                </div>
+
+                <!-- 제출 버튼 -->
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary" onclick="submitPost()">작성</button>
+                    <button type="button" class="btn btn-secondary ms-2" id="cancelBtn">취소</button>
+                </div>
+        </form>
+    </div>
+
+
+    <script>
+        // 업로드된 이미지 파일명을 저장할 전역 배열
+        let uploadedImageFilenames = [];
+
+        class MyUploadAdapter {
+            constructor(loader) {
+                this.loader = loader;
+            }
+
+            upload() {
+                return this.loader.file.then(file => {
+                    const data = new FormData();
+                    data.append('imageFile', file);
+
+                    return axios.post('/post/api/images/upload', data)
+                        .then(response => {
+                            // 서버에서 filename도 같이 보내도록 해야 함
+                            const url = response.data.url;
+                            const filename = response.data.filename;
+
+
+                            console.log("filename: " + filename);
+                            // 업로드된 파일명을 배열에 저장
+                            if (filename) {
+                                uploadedImageFilenames.push(filename); // 또는 배열에 직접 추가
+                            }
+
+                            return {
+                                default: url
+                            };
+                        });
+                });
+            }
+
+        }
+
+        function MyCustomUploadAdapterPlugin(editor) {
+            editor.plugins.get('FileRepository').createUploadAdapter = (loader) => {
+                return new MyUploadAdapter(loader);
+            };
+        }
+
+        ClassicEditor
+            .create(document.querySelector('#editor'), {
+                extraPlugins: [MyCustomUploadAdapterPlugin],
+            })
+            .catch(error => {
+                console.error(error);
+            });
+
+
+        document.getElementById("cancelBtn").addEventListener("click", cancelPost);
+
+        // 취소 버튼 클릭 시 업로드된 이미지 삭제 후 페이지 이동
+        function cancelPost() {
+            console.log(uploadedImageFilenames);
+            console.log("clicked!")
+            if (uploadedImageFilenames.length === 0) {
+                window.location.href = "/post/posts";
+                return;
+            }
+
+            axios.post('/post/api/images/delete-multiple', {
+                filenames: uploadedImageFilenames
+            })
+                .then(() => {
+                    console.log("✅ 이미지 삭제 완료");
+                    window.location.href = "/post/posts";
+                })
+                .catch(error => {
+                    console.error("❌ 이미지 삭제 실패", error);
+                    window.location.href = "/post/posts";
+                });
+        }
+
+
+        // 폼 제출 함수
+        function submitPost() {
+            document.getElementById("postForm").submit();
+        }
+
+    </script>
+</th:block>
+</html>

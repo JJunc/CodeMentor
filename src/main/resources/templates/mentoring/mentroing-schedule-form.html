@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+<th:block layout:fragment="content">
+    <div class="container-xxl text-center">
+        <div class="row">
+          <h2 class="mb-4">멘토링 스케줄 등록</h2>
+
+          <form th:action="@{/mentor/schedule/new}" th:object="${dto}" method="post">
+            <div class="mb-3">
+              <label class="form-label">멘토 ID</label>
+              <input type="number" th:field="*{mentorId}" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">시작 시간</label>
+              <input type="datetime-local" th:field="*{startTime}" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">종료 시간</label>
+              <input type="datetime-local" th:field="*{endTime}" class="form-control" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">가격</label>
+              <input type="number" th:field="*{price}" class="form-control" min="0" step="1000" required>
+            </div>
+
+            <div class="text-center">
+              <button type="submit" class="btn btn-primary px-4">등록</button>
+              <a href="/mentor/schedule" class="btn btn-secondary px-4">취소</a>
+            </div>
+          </form>
+        </div>
+    </div>
+</th:block>
+</html>

@@ -60,6 +60,8 @@ dependencies {
     implementation 'com.github.ben-manes.caffeine:caffeine:3.2.2'
 
     implementation 'org.springframework.boot:spring-boot-starter-hateoas'
+
+    implementation 'mysql:mysql-connector-java:8.0.33'
 }
 
 tasks.named('test') {

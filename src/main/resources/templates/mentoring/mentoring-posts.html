@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/layout}">
+<th:block layout:fragment="content">
+    <div class="container-sm my-4">
+        <div class="row text-center fs-1 mb-5">
+            <strong>개발 멘토링, 경험 많은 선배에게 질문해보세요.</strong>
+        </div>
+        <div class="row justify-content-center mb-5">
+            <div class="col-12 col-sm-8 col-md-5">
+                <form th:action="@{/mentoring/search}" method="get" class="position-relative">
+                    <input type="text" class="form-control pe-4 pe-sm-5" placeholder="검색어를 입력하세요" name="q">
+                    <button type="submit"
+                            class="btn position-absolute top-50 end-0 translate-middle-y border-0 bg-transparent">
+                        <i class="bi bi-search fs-5 fs-sm-4 text-secondary"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div class="row justify-content-start gx-4 gy-4">
+            <div class="row">
+                <div class="col-md-4 mb-4" th:each="mentoring : ${dto}">
+                    <div class="card h-100 shadow-sm"
+                         th:onclick="'location.href=\'/mentoring/mentors/' + ${mentoring.id} + '\''"
+                         style="cursor: pointer; transition: transform 0.1s ease-in-out;"
+                         onmouseover="this.style.transform='scale(1.02)'"
+                         onmouseout="this.style.transform='scale(1)'">
+
+                        <div class="card-body text-center d-flex flex-column">
+                            <h3 class="card-title mb-1" th:text="${mentoring.title}"></h3>
+                            <h5 class="card-title mb-1" th:text="${mentoring.mentorNickname}">멘토 이름</h5>
+                            <p class="text-muted mb-2"
+                               th:text="${mentoring.mentorPosition.position + ' · ' + mentoring.mentorCareer.label}">
+                                직책 · 경력 레벨
+                            </p>
+                            <div class="mt-auto">
+                                <p class="mb-1">
+                                    <strong th:text="'₩' + ${#numbers.formatInteger(mentoring.price, 3, 'COMMA')}">₩110,000</strong>
+                                </p>
+                                <p class="text-muted">
+                                    <small th:text="${mentoring.durationMinutes == null? mentoring.durationHours + '시간' :
+                            mentoring.durationHours + '시간 ' + mentoring.durationMinutes + '분'}">
+                                    </small>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row justify-content-center mb-5">
+                <div th:if="${session.loginMember != null}" class="text-end">
+                    <a th:href="@{/mentoring/post/create}" class="btn btn-primary" role="button">
+                        글 작성
+                    </a>
+                </div>
+            </div>
+            <!-- 반복 -->
+        </div>
+    </div>
+</th:block>
+</html>

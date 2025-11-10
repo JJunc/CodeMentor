@@ -1,6 +1,5 @@
 package com.codementor.member.dto;
 
-import com.codementor.admin.enums.SearchType;
 import com.codementor.member.enums.MemberRole;
 import com.codementor.member.enums.MemberStatus;
 import lombok.Getter;
@@ -12,7 +11,6 @@ public class MemberSearchDto {
 
     private Long id;
     private String keyword;
-    private SearchType searchType;
     private String username;
     private String nickname;
     private String email;

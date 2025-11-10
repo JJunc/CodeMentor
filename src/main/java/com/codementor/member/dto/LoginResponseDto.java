@@ -1,6 +1,5 @@
 package com.codementor.member.dto;
 
-import com.codementor.admin.dto.MemberSuspensionDto;
 import com.codementor.member.enums.MemberRole;
 import com.codementor.member.enums.MemberStatus;
 import lombok.Getter;
