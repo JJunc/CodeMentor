@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,7 +24,7 @@ public class MentoringScheduleService {
         mentoringScheduleRepository.save(mentoringScheduleCreateMapper.toEntity(mentoringScheduleCreate));
     }
 
-    public List<MentoringScheduleResponse> getDailySchedules(Long mentorId, LocalDate date) {
+    public List<MentoringScheduleResponse> getDailySchedules(Long mentorId, LocalDateTime date) {
         return mentoringScheduleRepository.findByMentorIdAndDate(mentorId, date).stream()
                 .map(s -> new MentoringScheduleResponse(
                         s.getStartTime().toLocalTime().toString(),

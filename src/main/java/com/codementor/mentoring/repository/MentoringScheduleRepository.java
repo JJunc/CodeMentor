@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,7 +36,7 @@ public interface MentoringScheduleRepository extends JpaRepository<MentoringSche
 """)
     int bookSchedule(Long scheduleId, MentoringScheduleStatus status);
 
-    List<MentoringSchedule> findByMentorIdAndDate(Long mentorId, LocalDate date);
+    List<MentoringSchedule> findByMentorIdAndDate(Long mentorId, LocalDateTime date);
 
 
 }

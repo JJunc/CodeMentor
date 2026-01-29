@@ -11,6 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -32,16 +33,16 @@ public class MentoringScheduleController {
         return "redirect:/mentoring/mentoring-schedule";
     }
 
-    @GetMapping
-    public String MentoringScheduleList(Model model) {
-
-    }
+//    @GetMapping
+//    public String MentoringScheduleList(Model model) {
+//
+//    }
 
     @GetMapping("/{mentorId}/schedules")
     @ResponseBody
     public List<MentoringScheduleResponse> getSchedules(
             @PathVariable Long mentorId,
-            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+            @RequestParam("date") LocalDateTime date) {
         return scheduleService.getDailySchedules(mentorId, date);
     }
 }

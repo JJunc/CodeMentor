@@ -19,6 +19,9 @@ public class MentoringSchedule {
     private Long mentorId;
 
     @Column(nullable = false)
+    private LocalDateTime date;
+
+    @Column(nullable = false)
     private LocalDateTime startTime;
 
     @Column(nullable = false)
@@ -29,6 +32,9 @@ public class MentoringSchedule {
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
